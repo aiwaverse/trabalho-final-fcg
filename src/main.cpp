@@ -277,7 +277,8 @@ int main(int argc, char* argv[])
     ComputeNormals(&spheremodel);
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
-    ObjModel bunnymodel("../../data/bunny.obj");
+    // OBJ invisível
+    ObjModel bunnymodel("../../models/Rifle20k.obj");
     ComputeNormals(&bunnymodel);
     BuildTrianglesAndAddToVirtualScene(&bunnymodel);
 
