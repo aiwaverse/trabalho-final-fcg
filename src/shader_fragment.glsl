@@ -20,7 +20,7 @@ uniform mat4 projection;
 
 // Identificador que define qual objeto está sendo desenhado no momento
 #define SPHERE 0
-#define BUNNY  1
+#define COW  1
 #define PLANE  2
 uniform int object_id;
 
@@ -94,7 +94,7 @@ void main()
         U = (theta + M_PI)/(2*M_PI);
         V = (phi + M_PI/2)/M_PI;
     }
-    else if ( object_id == BUNNY )
+    else if ( object_id == COW )
     {
         // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
         // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
@@ -104,7 +104,7 @@ void main()
         // tanto, veja por exemplo o mapeamento da variável 'p_v' utilizando
         // 'h' no slides 158-160 do documento Aula_20_Mapeamento_de_Texturas.pdf.
         // Veja também a Questão 4 do Questionário 4 no Moodle.
-
+        
         float minx = bbox_min.x;
         float maxx = bbox_max.x;
 
@@ -127,11 +127,14 @@ void main()
     // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
     vec3 Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
     vec3 Kd1 = texture(TextureImage1, vec2(U,V)).rgb;
+    vec3 Kd2 = texture(TextureImage2, vec2(U,V)).rgb;
 
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
-
-    color = Kd0 * (lambert + 0.01) + Kd1 * (1 - pow(lambert, 0.1) + 0.01);
+    if (object_id == COW)
+        color = Kd2 * (lambert + 0.01);
+    else
+        color = Kd0 * (lambert + 0.01) + Kd1 * (1 - pow(lambert, 0.1) + 0.01);
 
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas

@@ -271,6 +271,7 @@ int main(int argc, char* argv[])
     // Carregamos duas imagens para serem utilizadas como textura
     LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
     LoadTextureImage("../../data/tc-earth_nightmap_citylights.gif"); // TextureImage1
+    LoadTextureImage("../../models/Rifle20k_Base.png");              // TextureImage2
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
@@ -278,10 +279,10 @@ int main(int argc, char* argv[])
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
     // OBJ invisível
-    ObjModel bunnymodel("../../models/Rifle20k.obj");
-    // ObjModel bunnymodel("../../data/cow.obj");
-    ComputeNormals(&bunnymodel);
-    BuildTrianglesAndAddToVirtualScene(&bunnymodel);
+    ObjModel riflemodel("../../models/rifle.obj");
+    //ObjModel cowmodel("../../data/cow.obj");
+    ComputeNormals(&riflemodel);
+    BuildTrianglesAndAddToVirtualScene(&riflemodel);
 
     ObjModel planemodel("../../data/plane.obj");
     ComputeNormals(&planemodel);
@@ -389,7 +390,7 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
         #define SPHERE 0
-        #define BUNNY  1
+        #define COW  1
         #define PLANE  2
 
         // Desenhamos o modelo da esfera
@@ -405,8 +406,8 @@ int main(int argc, char* argv[])
         model = Matrix_Translate(1.0f,0.0f,0.0f)
               * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, BUNNY);
-        DrawVirtualObject("bunny");
+        glUniform1i(object_id_uniform, COW);
+        DrawVirtualObject("rifle");
 
         // Desenhamos o plano do chão
         model = Matrix_Translate(0.0f,-1.1f,0.0f);
