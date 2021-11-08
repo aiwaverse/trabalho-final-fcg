@@ -279,6 +279,7 @@ int main(int argc, char* argv[])
 
     // OBJ invisível
     ObjModel bunnymodel("../../models/Rifle20k.obj");
+    // ObjModel bunnymodel("../../data/cow.obj");
     ComputeNormals(&bunnymodel);
     BuildTrianglesAndAddToVirtualScene(&bunnymodel);
 
