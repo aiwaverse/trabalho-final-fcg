@@ -132,9 +132,11 @@ void main()
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
     if (object_id == RIFLE)
-        color = Kd2 * (lambert + 0.01);
+        color = Kd2 * (lambert + 0.25);
+    else if (object_id == PLANE)
+        color = Kd1 * (lambert + 0.01);
     else
-        color = Kd0 * (lambert + 0.01) + Kd1 * (1 - pow(lambert, 0.1) + 0.01);
+        color = Kd0 * (lambert + 0.01);
 
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas

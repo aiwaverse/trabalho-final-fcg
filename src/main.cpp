@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
 
     // Carregamos duas imagens para serem utilizadas como textura
     LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
-    LoadTextureImage("../../data/tc-earth_nightmap_citylights.gif"); // TextureImage1
+    LoadTextureImage("../../models/light-gray-concrete-wall.jpg"); // TextureImage1
     LoadTextureImage("../../models/rifle_Base.png");                 // TextureImage2
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
     ComputeNormals(&spheremodel);
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
-    // OBJ invisível
+    // Carregamento do rifle
     ObjModel riflemodel("../../models/rifle.obj");
     ComputeNormals(&riflemodel);
     BuildTrianglesAndAddToVirtualScene(&riflemodel);
@@ -414,7 +414,7 @@ int main(int argc, char *argv[])
         DrawVirtualObject("sphere");
 
         // Desenhamos o plano do chão
-        model = Matrix_Translate(0.0f, -1.1f, 0.0f);
+        model = Matrix_Translate(0.0f, -1.1f, 0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
