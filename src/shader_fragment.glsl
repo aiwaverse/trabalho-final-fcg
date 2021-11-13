@@ -20,7 +20,7 @@ uniform mat4 projection;
 
 // Identificador que define qual objeto está sendo desenhado no momento
 #define SPHERE 0
-#define COW  1
+#define RIFLE  1
 #define PLANE  2
 uniform int object_id;
 
@@ -94,7 +94,7 @@ void main()
         U = (theta + M_PI)/(2*M_PI);
         V = (phi + M_PI/2)/M_PI;
     }
-    else if ( object_id == COW )
+    else if ( object_id == RIFLE )
     {
         // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
         // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
@@ -131,7 +131,7 @@ void main()
 
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
-    if (object_id == COW)
+    if (object_id == RIFLE)
         color = Kd2 * (lambert + 0.01);
     else
         color = Kd0 * (lambert + 0.01) + Kd1 * (1 - pow(lambert, 0.1) + 0.01);

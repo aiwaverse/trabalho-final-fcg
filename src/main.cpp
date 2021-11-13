@@ -284,7 +284,6 @@ int main(int argc, char *argv[])
 
     // OBJ invisível
     ObjModel riflemodel("../../models/rifle.obj");
-    //ObjModel cowmodel("../../data/cow.obj");
     ComputeNormals(&riflemodel);
     BuildTrianglesAndAddToVirtualScene(&riflemodel);
 
@@ -396,7 +395,7 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
 #define SPHERE 0
-#define COW 1
+#define RIFLE 1
 #define PLANE 2
 
         // Desenhamos o modelo da esfera
@@ -408,7 +407,7 @@ int main(int argc, char *argv[])
         // Desenhamos o modelo do coelho
         model = Matrix_Translate(1.0f, 0.0f, 0.0f) * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(object_id_uniform, COW);
+        glUniform1i(object_id_uniform, RIFLE);
         DrawVirtualObject("rifle");
 
         // Desenhamos o plano do chão
