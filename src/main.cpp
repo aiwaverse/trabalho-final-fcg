@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
     LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
     LoadTextureImage("../../models/light-gray-concrete-wall.jpg");   // TextureImage1
     LoadTextureImage("../../models/rifle_Base.png");                 // TextureImage2
-    LoadTextureImage("../../models/crosshair.TGA");                  // TextureImage3
+    LoadTextureImage("../../models/crosshair.png");                  // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
@@ -429,10 +429,12 @@ int main(int argc, char *argv[])
 
         // Desenhando o HUD
         
-        model = Matrix_Identity();
+        model = Matrix_Translate(0.0f, -0.9f, 0.0f);
         glDisable(GL_DEPTH_TEST);
-        glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));      
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
+        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));      
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, HUD);
         DrawVirtualObject("hud");
