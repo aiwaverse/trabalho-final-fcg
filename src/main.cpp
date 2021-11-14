@@ -53,6 +53,7 @@
 #define SPHERE 0
 #define RIFLE 1
 #define PLANE 2
+#define CUBE  3
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
@@ -255,6 +256,7 @@ int main(int argc, char *argv[])
     LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
     LoadTextureImage("../../models/light-gray-concrete-wall.jpg"); // TextureImage1
     LoadTextureImage("../../models/rifle_Base.png");                 // TextureImage2
+    LoadTextureImage("../../models/cubo_textura.jpg");                 // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
@@ -400,7 +402,7 @@ int main(int argc, char *argv[])
 
         model = Matrix_Identity();
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(cubemodel.getModel()));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, CUBE);
         DrawVirtualObject("Cube");
 
 
@@ -576,6 +578,7 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(program_id, "TextureImage0"), 0);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage2"), 2);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage3"), 3);
     glUseProgram(0);
 }
 
