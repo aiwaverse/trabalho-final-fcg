@@ -21,6 +21,7 @@
 
 // Headers abaixo são específicos de C++
 #include <map>
+#include <iostream>
 #include <stack>
 #include <string>
 #include <vector>
@@ -49,11 +50,12 @@
 #include "matrices.h"
 #include "objmodel.h"
 #include "cube.h"
+#include "collisions.h"
 
 #define SPHERE 0
 #define RIFLE 1
 #define PLANE 2
-#define CUBE  3
+#define CUBE 3
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
@@ -84,6 +86,8 @@ void TextRendering_PrintMatrixVectorProduct(GLFWwindow *window, glm::mat4 M, glm
 void TextRendering_PrintMatrixVectorProductMoreDigits(GLFWwindow *window, glm::mat4 M, glm::vec4 v, float x, float y, float scale = 1.0f);
 void TextRendering_PrintMatrixVectorProductDivW(GLFWwindow *window, glm::mat4 M, glm::vec4 v, float x, float y, float scale = 1.0f);
 
+void print_vec4(const glm::vec4 &v);
+
 // Funções abaixo renderizam como texto na janela OpenGL algumas matrizes e
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowModelViewProjection(GLFWwindow *window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
@@ -103,6 +107,8 @@ void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 // Funções para controle de câmera
 void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector);
 void changeCameraView(glm::vec4 &view_vector);
+
+glm::vec4 g_LastCameraPos{};
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -135,6 +141,9 @@ float g_ScreenRatio = 1.0f;
 float g_AngleX = 0.0f;
 float g_AngleY = 0.0f;
 float g_AngleZ = 0.0f;
+std::vector<cube> g_Cubes{};
+
+cube g_Player("../../models/cube.obj");
 
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
 // pressionado no momento atual. Veja função MouseButtonCallback().
@@ -253,10 +262,10 @@ int main(int argc, char *argv[])
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
+    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");    // TextureImage0
     LoadTextureImage("../../models/light-gray-concrete-wall.jpg"); // TextureImage1
-    LoadTextureImage("../../models/rifle_Base.png");                 // TextureImage2
-    LoadTextureImage("../../models/cubo_textura.jpg");                 // TextureImage3
+    LoadTextureImage("../../models/rifle_Base.png");               // TextureImage2
+    LoadTextureImage("../../models/cubo_textura.jpg");             // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
@@ -273,8 +282,11 @@ int main(int argc, char *argv[])
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
     cube cubemodel("../../models/cube.obj");
+    g_Cubes.push_back(cubemodel);
     ComputeNormals(&cubemodel.cubemodel);
     BuildTrianglesAndAddToVirtualScene(&cubemodel.cubemodel);
+
+    g_Player.setScale(1, 1, 1);
 
     if (argc > 1)
     {
@@ -306,7 +318,7 @@ int main(int argc, char *argv[])
         -sin(g_CameraPhi),
         cos(g_CameraPhi) * cos(g_CameraTheta),
         0.0f);
-
+    g_LastCameraPos = camera_c_point;
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
@@ -338,6 +350,8 @@ int main(int argc, char *argv[])
         changeCameraPos(camera_c_point, camera_view_vector);
         changeCameraView(camera_view_vector);
         glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+
+        g_Player.setPos(camera_c_point.x, camera_c_point.y, camera_c_point.z);
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -376,11 +390,10 @@ int main(int argc, char *argv[])
         model = Matrix_Scale(0.5f, 0.5f, 0.5f) * Matrix_Translate(0.45f, 0.0f, 0.0f) * Matrix_Rotate_X(M_PI) * Matrix_Rotate_Z(M_PI) * Matrix_Translate(0.0f, -0.35f, 0.85f);
 
         glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
-        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));      
+        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, RIFLE);
         DrawVirtualObject("rifle");
-
 
         // Enviamos as matrizes "view" e "projection" para a placa de vídeo
         // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
@@ -400,11 +413,10 @@ int main(int argc, char *argv[])
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
 
-        model = Matrix_Identity();
+        cubemodel.setScale(1.0f, 0.5f, 1.0f);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(cubemodel.getModel()));
         glUniform1i(object_id_uniform, CUBE);
         DrawVirtualObject("Cube");
-
 
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
@@ -1055,7 +1067,8 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
     float dy = ypos - g_LastCursorPosY;
 
     // Evitando "pulos" da câmera quando o mouse fica fora da tela
-    if (dx > 10.0f || dy > 10.0f){
+    if (dx > 10.0f || dy > 10.0f)
+    {
         g_LastCursorPosX = xpos;
         g_LastCursorPosY = ypos;
         return;
@@ -1561,28 +1574,47 @@ void changeCameraView(glm::vec4 &view_vector)
 
 void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector)
 {
+    glm::vec4 calculate_pos{c_point};
     constexpr auto speed = 0.03f;
     glm::vec4 up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
     auto w = -view_vector / norm(view_vector);
     auto u = crossproduct(up_vector, w) / norm(crossproduct(up_vector, w));
+    
     if (g_PressedKeys["W"])
     {
-        c_point.x -= w.x * speed;
-        c_point.z -= w.z * speed;
+        calculate_pos.x -= w.x * speed;
+        calculate_pos.z -= w.z * speed;
     }
     if (g_PressedKeys["S"])
     {
-        c_point.x += w.x * speed;
-        c_point.z += w.z * speed;
+        calculate_pos.x += w.x * speed;
+        calculate_pos.z += w.z * speed;
     }
     if (g_PressedKeys["D"])
     {
-        c_point.x += u.x * speed;
-        c_point.z += u.z * speed;
+        calculate_pos.x += u.x * speed;
+        calculate_pos.z += u.z * speed;
     }
     if (g_PressedKeys["A"])
     {
-        c_point.x -= u.x * speed;
-        c_point.z -= u.z * speed;
+        calculate_pos.x -= u.x * speed;
+        calculate_pos.z -= u.z * speed;
     }
+    if (calculate_pos == g_LastCameraPos)
+        return;
+
+    g_Player.setPos(calculate_pos.x, calculate_pos.y, calculate_pos.z);
+    for (auto &&cube : g_Cubes)
+    {
+        if (cubeToCubeCollision(g_Player, cube))
+        {
+            return;
+        }
+    }
+    c_point = calculate_pos;
+    g_LastCameraPos = c_point;
+}
+
+void print_vec4(const glm::vec4 &v){
+    std::cout << v.x << " " << v.y << " " << v.z << " " << v.w << "\n";
 }
