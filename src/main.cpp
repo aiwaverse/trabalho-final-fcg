@@ -429,13 +429,12 @@ int main(int argc, char *argv[])
 
         // Desenhando o HUD
         
-        model = Matrix_Translate(0.0f, -0.9f, 0.0f);
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
         glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));      
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
         glUniform1i(object_id_uniform, HUD);
         DrawVirtualObject("hud");
         glEnable(GL_DEPTH_TEST);
