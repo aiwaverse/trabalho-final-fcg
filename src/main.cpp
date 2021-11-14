@@ -51,6 +51,7 @@
 #define SPHERE 0
 #define RIFLE 1
 #define PLANE 2
+#define HUD 3
 
 // Estrutura que representa um modelo geométrico carregado a partir de um
 // arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file .
@@ -278,8 +279,9 @@ int main(int argc, char *argv[])
 
     // Carregamos duas imagens para serem utilizadas como textura
     LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
-    LoadTextureImage("../../models/light-gray-concrete-wall.jpg"); // TextureImage1
+    LoadTextureImage("../../models/light-gray-concrete-wall.jpg");   // TextureImage1
     LoadTextureImage("../../models/rifle_Base.png");                 // TextureImage2
+    LoadTextureImage("../../models/crosshair.TGA");                  // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
@@ -294,6 +296,10 @@ int main(int argc, char *argv[])
     ObjModel planemodel("../../data/plane.obj");
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
+
+    ObjModel hudmodel("../../models/hud.obj");
+    ComputeNormals(&hudmodel);
+    BuildTrianglesAndAddToVirtualScene(&hudmodel);
 
     if (argc > 1)
     {
@@ -392,6 +398,7 @@ int main(int argc, char *argv[])
 
         glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
 
+        // desenhando o rifle
         model = Matrix_Scale(0.5f, 0.5f, 0.5f) * Matrix_Translate(0.45f, 0.0f, 0.0f) * Matrix_Rotate_X(M_PI) * Matrix_Rotate_Z(M_PI) * Matrix_Translate(0.0f, -0.35f, 0.85f);
 
         glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
@@ -418,6 +425,19 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
+
+
+        // Desenhando o HUD
+        
+        model = Matrix_Identity();
+        glDisable(GL_DEPTH_TEST);
+        glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));      
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform, HUD);
+        DrawVirtualObject("hud");
+        glEnable(GL_DEPTH_TEST);
+
 
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
@@ -591,6 +611,7 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(program_id, "TextureImage0"), 0);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage2"), 2);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage3"), 3);
     glUseProgram(0);
 }
 
