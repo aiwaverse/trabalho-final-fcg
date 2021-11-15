@@ -430,7 +430,6 @@ int main(int argc, char *argv[])
 
         // Renderização das paredes (dois planos, um de cada lado)
         model = g_Wall.getModel();
-        //model = Matrix_Translate(0.0, -0.7f, 0.0);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE_WALL);
         DrawVirtualObject("plane");
@@ -1646,8 +1645,8 @@ void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector)
         return;
 
     g_Player.setPos(calculate_pos.x, calculate_pos.y, calculate_pos.z);
-    //if (cylinderToPlaneCollision(g_Player, g_Wall))
-    //    return;
+    if (cylinderToPlaneCollision(g_Player, g_Wall))
+        return;
     for (auto &&cube : g_Cubes)
     {
         if (cubeToCylinderCollision(cube, g_Player))

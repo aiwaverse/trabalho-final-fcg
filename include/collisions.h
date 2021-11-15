@@ -75,7 +75,7 @@ bool cubeToCylinderCollision(const cube &c, cylinder &cy)
 
 bool cylinderToPlaneCollision(cylinder &cy, plane &p)
 {
-    if (fabs(p.posx - cy.posx) < cy.getSizeX() + p.scalex)
+    if (fabs(p.posx - cy.posx) < cy.getSizeX() + 0.005)
     {
         /*
         std::cout << "X: "
