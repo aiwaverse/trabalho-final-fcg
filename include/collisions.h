@@ -62,3 +62,5 @@ bool cubeToCylinderCollision(const cube &c, cylinder &cy)
     }
     return false;
 }
+
+bool cylinderToPlaneCollision();
