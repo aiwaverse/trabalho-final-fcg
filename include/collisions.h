@@ -1,5 +1,6 @@
 #pragma once
 #include "cube.h"
+#include "cylinder.h"
 #include <cmath>
 #include <iostream>
 
@@ -40,6 +41,21 @@ bool cubeToCubeCollision(cube &cube1, cube &cube2)
                           << (fabs(cube1.posz - cube2.posz) < (cube1.scalez / 2 + cube2.scalez))
                           << "\n";
                 */
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool cubeToCylinderCollision(const cube &c, cylinder &cy)
+{
+    if (fabs(c.posx - cy.posx) < cy.getSizeX() + c.scalex)
+    {
+        if (fabs(c.posy - cy.posy) < cy.getSizeY() + c.scaley)
+        {
+            if (fabs(c.posz - cy.posz) < cy.getSizeZ() + c.scalez)
+            {
                 return true;
             }
         }

@@ -143,7 +143,7 @@ float g_AngleY = 0.0f;
 float g_AngleZ = 0.0f;
 std::vector<cube> g_Cubes{};
 
-cube g_Player("../../models/cube.obj");
+cylinder g_Player = cylinder();
 
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
 // pressionado no momento atual. Veja função MouseButtonCallback().
@@ -289,14 +289,14 @@ int main(int argc, char *argv[])
     BuildTrianglesAndAddToVirtualScene(&cubemodel1.cubemodel);
 
     g_Cubes[0].setPos(0, 0, 0);
-    g_Cubes[0].setScale(3, 1, 1);
+    g_Cubes[0].setScale(4, 1, 2);
     //g_Cubes[1].setPos(-3, 0, 0);
     //g_Cubes[1].setScale(3, 1, 1);
     //g_Cubes[2].setPos(4, 0, 2);
 
 
     //g_Player.setScale(3.3, 1, 3.3);
-    g_Player.setScale(1, 1, 1);
+    g_Player.radius = 0.5;
 
     if (argc > 1)
     {
@@ -361,7 +361,9 @@ int main(int argc, char *argv[])
         changeCameraView(camera_view_vector);
         glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
-        g_Player.setPos(camera_c_point.x, camera_c_point.y, camera_c_point.z);
+        g_Player.posx = camera_c_point.x;
+        g_Player.posy = camera_c_point.y;
+        g_Player.posz = camera_c_point.z;
         //print_vec4(camera_c_point);
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -1623,7 +1625,7 @@ void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector)
     g_Player.setPos(calculate_pos.x, calculate_pos.y, calculate_pos.z);
     for (auto &&cube : g_Cubes)
     {
-        if (cubeToCubeCollision(g_Player, cube))
+        if (cubeToCylinderCollision(cube, g_Player))
         {
             return;
         }

@@ -6,9 +6,8 @@
 #include <glad/glad.h>  // Criação de contexto OpenGL 3.3
 #include <GLFW/glfw3.h> // Criação de janelas do sistema operacional
 
-class cube
+struct cube
 {
-public:
     float posx{};
     float posy{};
     float posz{};
@@ -17,6 +16,7 @@ public:
     float scalez{1};
     ObjModel cubemodel;
     cube(const char *path);
+    cube();
     ~cube();
 
     glm::mat4 getModel();
