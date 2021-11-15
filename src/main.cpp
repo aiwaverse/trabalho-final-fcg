@@ -319,9 +319,9 @@ int main(int argc, char *argv[])
 
     // Variáveis auxiliares utilizadas para chamada à função
     // TextRendering_ShowModelViewProjection(), armazenando matrizes 4x4.
-    glm::mat4 the_projection;
-    glm::mat4 the_model;
-    glm::mat4 the_view;
+    // glm::mat4 the_projection;
+    // glm::mat4 the_model;
+    // glm::mat4 the_view;
 
     // definição da câmera
     auto camera_c_point = glm::vec4(0.5f, 0.0f, 0.0f, 1.0f);
@@ -356,7 +356,7 @@ int main(int argc, char *argv[])
         // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
         // e ScrollCallback().
-        float r = g_CameraDistance;
+        // float r = g_CameraDistance;
 
         // Definição de movimento de câmera
         changeCameraPos(camera_c_point, camera_view_vector);
