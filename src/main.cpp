@@ -285,8 +285,8 @@ int main(int argc, char *argv[])
     g_Cubes.push_back(cubemodel);
     ComputeNormals(&cubemodel.cubemodel);
     BuildTrianglesAndAddToVirtualScene(&cubemodel.cubemodel);
-
-    g_Player.setScale(3.3, 1, 3.3);
+    glDepthFunc(GL_LESS);
+    g_Player.setScale(1.5, 1, 1.5);
 
     if (argc > 1)
     {
@@ -387,14 +387,6 @@ int main(int argc, char *argv[])
 
         glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
 
-        model = Matrix_Scale(0.5f, 0.5f, 0.5f) * Matrix_Translate(0.45f, 0.0f, 0.0f) * Matrix_Rotate_X(M_PI) * Matrix_Rotate_Z(M_PI) * Matrix_Translate(0.0f, -0.35f, 0.85f);
-
-        glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
-        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(object_id_uniform, RIFLE);
-        DrawVirtualObject("rifle");
-
         // Enviamos as matrizes "view" e "projection" para a placa de vídeo
         // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
         // efetivamente aplicadas em todos os pontos.
@@ -417,6 +409,17 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(cubemodel.getModel()));
         glUniform1i(object_id_uniform, CUBE);
         DrawVirtualObject("Cube");
+
+        // Render do rifle acima de todos os layers (exceto possível futuro HUD)
+
+        model = Matrix_Scale(0.5f, 0.5f, 0.5f) * Matrix_Translate(0.45f, 0.0f, 0.0f) * Matrix_Rotate_X(M_PI) * Matrix_Rotate_Z(M_PI) * Matrix_Translate(0.0f, -0.35f, 0.85f);
+        glDepthFunc(GL_ALWAYS);
+        glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
+        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform, RIFLE);
+        DrawVirtualObject("rifle");
+        glDepthFunc(GL_LESS);
 
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
