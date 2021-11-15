@@ -53,6 +53,7 @@ bool cubeToCylinderCollision(const cube &c, cylinder &cy)
 {
     if (fabs(c.posx - cy.posx) < cy.getSizeX() + c.scalex)
     {
+        /*
         std::cout << "X: "
                   << fabs(c.posx - cy.posx)
                   << " < "
@@ -60,6 +61,7 @@ bool cubeToCylinderCollision(const cube &c, cylinder &cy)
                   << " = "
                   << (fabs(c.posx - cy.posx) < (cy.getSizeX() + c.scalex))
                   << "\n";
+        */
         if (fabs(c.posy - cy.posy) < cy.getSizeY() + c.scaley)
         {
             if (fabs(c.posz - cy.posz) < cy.getSizeZ() + c.scalez)

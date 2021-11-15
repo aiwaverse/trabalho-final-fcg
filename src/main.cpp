@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");    // TextureImage0
+    LoadTextureImage("../../models/textura_bala.jpg");    // TextureImage0
     LoadTextureImage("../../models/light-gray-concrete-wall.jpg"); // TextureImage1
     LoadTextureImage("../../models/rifle_Base.png");               // TextureImage2
     LoadTextureImage("../../models/cubo_textura.jpg");             // TextureImage3
@@ -283,17 +283,18 @@ int main(int argc, char *argv[])
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
     cube cubemodel1("../../models/cube.obj");
-    //g_Cubes.push_back(cubemodel1);
-    //g_Cubes.push_back(cubemodel1);
-    //g_Cubes.push_back(cubemodel1);
+    g_Cubes.push_back(cubemodel1);
+    g_Cubes.push_back(cubemodel1);
+    g_Cubes.push_back(cubemodel1);
     ComputeNormals(&cubemodel1.cubemodel);
     BuildTrianglesAndAddToVirtualScene(&cubemodel1.cubemodel);
 
-    //g_Cubes[0].setPos(3, 0, 2);
-    //g_Cubes[0].setScale(4, 1, 2);
-    //g_Cubes[1].setPos(-3, 0, 0);
-    //g_Cubes[1].setScale(3, 1, 1);
-    //g_Cubes[2].setPos(4, 0, 2);
+    g_Cubes[0].setPos(3, 0, -3);
+    g_Cubes[0].setScale(3, 1, 1);
+    g_Cubes[1].setPos(3, 0, 3);
+    g_Cubes[1].setScale(3, 1, 1);
+    g_Cubes[2].setPos(6, 0, 0);
+    g_Cubes[2].setScale(1, 1, 3);
 
 
     //g_Player.setScale(3.3, 1, 3.3);
@@ -323,7 +324,7 @@ int main(int argc, char *argv[])
     glm::mat4 the_view;
 
     // definição da câmera
-    auto camera_c_point = glm::vec4(0.0f, 0.0f, -3.0f, 1.0f);
+    auto camera_c_point = glm::vec4(0.5f, 0.0f, 0.0f, 1.0f);
     auto camera_view_vector = glm::vec4(
         cos(g_CameraPhi) * sin(g_CameraTheta),
         -sin(g_CameraPhi),
@@ -410,7 +411,7 @@ int main(int argc, char *argv[])
         model = Matrix_Translate(-1.0f, 0.0f, 0.0f) * Matrix_Rotate_Z(0.6f) * Matrix_Rotate_X(0.2f) * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE);
-        DrawVirtualObject("sphere");
+        //DrawVirtualObject("sphere");
 
         // Desenhamos o plano do chão
         model = Matrix_Translate(0.0f, -1.1f, 0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f);
@@ -419,7 +420,7 @@ int main(int argc, char *argv[])
         DrawVirtualObject("plane");
 
         // Renderização das paredes (dois planos, um de cada lado)
-        model = Matrix_Translate(0.0, -0.7f, 0.0) * Matrix_Scale(5, 0.3, 1) * Matrix_Rotate_Z(M_PI_2);
+        model = Matrix_Translate(0.0, -0.7f, 0.0) * Matrix_Scale(1, 0.3, 3) * Matrix_Rotate_Z(M_PI_2);
         std::cout << model[0][0] << "\n";
         std::cout << model[1][1] << "\n";
         std::cout << model[2][2] << "\n";
