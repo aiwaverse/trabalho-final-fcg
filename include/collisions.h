@@ -1,6 +1,7 @@
 #pragma once
 #include "cube.h"
 #include "cylinder.h"
+#include "plane.h"
 #include <cmath>
 #include <iostream>
 
@@ -52,6 +53,13 @@ bool cubeToCylinderCollision(const cube &c, cylinder &cy)
 {
     if (fabs(c.posx - cy.posx) < cy.getSizeX() + c.scalex)
     {
+        std::cout << "X: "
+                  << fabs(c.posx - cy.posx)
+                  << " < "
+                  << (cy.getSizeX() + c.scalex)
+                  << " = "
+                  << (fabs(c.posx - cy.posx) < (cy.getSizeX() + c.scalex))
+                  << "\n";
         if (fabs(c.posy - cy.posy) < cy.getSizeY() + c.scaley)
         {
             if (fabs(c.posz - cy.posz) < cy.getSizeZ() + c.scalez)
@@ -63,4 +71,7 @@ bool cubeToCylinderCollision(const cube &c, cylinder &cy)
     return false;
 }
 
-bool cylinderToPlaneCollision();
+bool cylinderToPlaneCollision(cylinder &cy, plane &p)
+{
+    
+}

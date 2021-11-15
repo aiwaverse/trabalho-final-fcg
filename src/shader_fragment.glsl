@@ -23,6 +23,7 @@ uniform mat4 projection;
 #define RIFLE  1
 #define PLANE  2
 #define CUBE   3
+#define PLANE_WALL 4
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -128,7 +129,7 @@ void main()
         U = (position_model.x - minx)/(maxx - minx);
         V = (position_model.y - miny)/(maxy - miny);
     }
-    else if ( object_id == PLANE )
+    else if ( object_id == PLANE || object_id == PLANE_WALL )
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
@@ -136,7 +137,7 @@ void main()
     }
 
     // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
-    vec3 Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
+    vec3 KdSphere = texture(TextureImage0, vec2(U,V)).rgb;
     vec3 KdPlane = texture(TextureImage1, vec2(U,V)).rgb;
     vec3 KdRifle = texture(TextureImage2, vec2(U,V)).rgb;
     vec3 KdCube = texture(TextureImage3, vec2(U,V)).rgb;
@@ -157,6 +158,13 @@ void main()
         Ka = vec3(0.0,0.0,0.0);
         q = 20.0;
     }
+    else if (object_id == PLANE_WALL)
+    {
+        Kd = KdCube * (lambert + 0.01);
+        Ks = vec3(0.3,0.3,0.3);
+        Ka = vec3(0.0,0.0,0.0);
+        q = 20.0;
+    }
     else if (object_id == CUBE)
     {
         Kd = KdCube * (lambert + 0.01);
@@ -166,7 +174,8 @@ void main()
     }
     else if (object_id == SPHERE)
     {
-        Kd = Kd0 * (lambert + 0.01);
+        // TOTALMENTE DIFUSA
+        Kd = KdSphere * (lambert + 0.01);
         Ka = vec3(0.0, 0.0, 0.0);
         Ks = vec3(0.0, 0.0, 0.0);
         q = 20.0;
@@ -183,7 +192,7 @@ void main()
     // Termo ambiente
     vec3 ambient_term = Ka * Ia; // PREENCHA AQUI o termo ambiente
     vec3 phong_specular_term;
-    if ( object_id == RIFLE )
+    if ( object_id == CUBE )
     {
         // Blinn-Phong
         vec4 h = normalize(l + v);

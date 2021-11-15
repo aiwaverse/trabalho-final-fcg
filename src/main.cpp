@@ -56,6 +56,7 @@
 #define RIFLE 1
 #define PLANE 2
 #define CUBE 3
+#define PLANE_WALL 4
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
@@ -282,14 +283,14 @@ int main(int argc, char *argv[])
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
     cube cubemodel1("../../models/cube.obj");
-    g_Cubes.push_back(cubemodel1);
+    //g_Cubes.push_back(cubemodel1);
     //g_Cubes.push_back(cubemodel1);
     //g_Cubes.push_back(cubemodel1);
     ComputeNormals(&cubemodel1.cubemodel);
     BuildTrianglesAndAddToVirtualScene(&cubemodel1.cubemodel);
 
-    g_Cubes[0].setPos(0, 0, 0);
-    g_Cubes[0].setScale(4, 1, 2);
+    //g_Cubes[0].setPos(3, 0, 2);
+    //g_Cubes[0].setScale(4, 1, 2);
     //g_Cubes[1].setPos(-3, 0, 0);
     //g_Cubes[1].setScale(3, 1, 1);
     //g_Cubes[2].setPos(4, 0, 2);
@@ -416,6 +417,20 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
+
+        // Renderização das paredes (dois planos, um de cada lado)
+        model = Matrix_Translate(0.0, -0.7f, 0.0) * Matrix_Scale(5, 0.3, 1) * Matrix_Rotate_Z(M_PI_2);
+        std::cout << model[0][0] << "\n";
+        std::cout << model[1][1] << "\n";
+        std::cout << model[2][2] << "\n";
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform, PLANE_WALL);
+        DrawVirtualObject("plane");
+        model *= Matrix_Rotate_X(M_PI);
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform, PLANE_WALL);
+        DrawVirtualObject("plane");
+
 
         for (auto &&cube : g_Cubes)
         {
