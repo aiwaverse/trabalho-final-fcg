@@ -6,6 +6,9 @@ struct plane
 private:
     ObjModel obj;
     glm::mat4 model_matrix;
+    float posx_{};
+    float posy_{};
+    float posz_{};
 public:
     float posx{};
     float posy{};
@@ -19,11 +22,13 @@ public:
 
     void setPos(float x, float y, float z)
     {
-        posx = x;
-        posy = y;
-        posz = z;
+        posx_ = x;
+        posy_ = y;
+        posz_ = z;
         calculateModelMatrix();
     }
+
+    plane(const char* path) : obj(path){};
 
     void loadModel(const char* path)
     {
@@ -35,12 +40,11 @@ public:
         scalex = x;
         scaley = y;
         scalez = z;
-        calculateModelMatrix();
     }
 
     void calculateModelMatrix()
     {
-        model_matrix = Matrix_Translate(posx, posy, posz) * Matrix_Scale(scalex, scaley, scalez) *  Matrix_Rotate_X(rotatex) * Matrix_Rotate_Y(rotatey)  * Matrix_Rotate_Z(rotatez);
+        model_matrix = Matrix_Identity() * Matrix_Translate(posx_, posy_, posz_) * Matrix_Scale(scalex, scaley, scalez) * Matrix_Rotate_Z(rotatez);
         posx = model_matrix[0][0];
         posy = model_matrix[1][1];
         posz = model_matrix[2][2];
@@ -48,6 +52,7 @@ public:
 
     glm::mat4 getModel()
     {
+        calculateModelMatrix();
         return model_matrix;
     }
 };

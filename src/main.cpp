@@ -175,6 +175,8 @@ bool g_UsePerspectiveProjection = true;
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
 
+plane g_Wall = plane("../../data/plane.obj");
+
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint vertex_shader_id;
 GLuint fragment_shader_id;
@@ -282,6 +284,12 @@ int main(int argc, char *argv[])
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
+
+    g_Wall.setPos(0.0, -0.7f, 0.0);
+    g_Wall.setScale(1.0, 0.3, 2.0);
+    g_Wall.rotatez = M_PI_2;
+    //g_Wall.calculateModelMatrix();
+
     cube cubemodel1("../../models/cube.obj");
     g_Cubes.push_back(cubemodel1);
     g_Cubes.push_back(cubemodel1);
@@ -331,6 +339,7 @@ int main(int argc, char *argv[])
         cos(g_CameraPhi) * cos(g_CameraTheta),
         0.0f);
     g_LastCameraPos = camera_c_point;
+    //wall.loadModel("../../data/plane.obj");
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
@@ -420,10 +429,8 @@ int main(int argc, char *argv[])
         DrawVirtualObject("plane");
 
         // Renderização das paredes (dois planos, um de cada lado)
-        model = Matrix_Translate(0.0, -0.7f, 0.0) * Matrix_Scale(1, 0.3, 3) * Matrix_Rotate_Z(M_PI_2);
-        std::cout << model[0][0] << "\n";
-        std::cout << model[1][1] << "\n";
-        std::cout << model[2][2] << "\n";
+        model = g_Wall.getModel();
+        //model = Matrix_Translate(0.0, -0.7f, 0.0);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE_WALL);
         DrawVirtualObject("plane");
@@ -1639,6 +1646,8 @@ void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector)
         return;
 
     g_Player.setPos(calculate_pos.x, calculate_pos.y, calculate_pos.z);
+    //if (cylinderToPlaneCollision(g_Player, g_Wall))
+    //    return;
     for (auto &&cube : g_Cubes)
     {
         if (cubeToCylinderCollision(cube, g_Player))
