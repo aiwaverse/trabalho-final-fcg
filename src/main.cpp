@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
     ComputeNormals(&cubemodel.cubemodel);
     BuildTrianglesAndAddToVirtualScene(&cubemodel.cubemodel);
 
-    g_Player.setScale(1, 1, 1);
+    g_Player.setScale(3.3, 1, 3.3);
 
     if (argc > 1)
     {
@@ -413,7 +413,7 @@ int main(int argc, char *argv[])
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
 
-        cubemodel.setScale(1.0f, 0.5f, 1.0f);
+        cubemodel.setScale(1.1f, 0.5f, 1.0f);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(cubemodel.getModel()));
         glUniform1i(object_id_uniform, CUBE);
         DrawVirtualObject("Cube");
