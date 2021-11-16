@@ -53,6 +53,7 @@
 #include "objmodel.h"
 #include "cube.h"
 #include "collisions.h"
+#include "sphere.h"
 
 #define SPHERE 0
 #define RIFLE 1
@@ -111,6 +112,9 @@ void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector);
 void changeCameraView(glm::vec4 &view_vector);
 
+// Função para controle do tiro
+void fire_bullet(const glm::mat4 &view, const glm::vec4 &camera_c_position);
+
 glm::vec4 g_LastCameraPos{};
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
@@ -148,12 +152,16 @@ std::vector<cube> g_Cubes{};
 
 cylinder g_Player = cylinder();
 
+sphere g_Bullet = sphere("../../data/sphere.obj");
+
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
 // pressionado no momento atual. Veja função MouseButtonCallback().
 bool g_LeftMouseButtonPressed = false;
 bool g_RightMouseButtonPressed = false;  // Análogo para botão direito do mouse
 bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mouse
 std::map<std::string, bool> g_PressedKeys{{"W", false}, {"A", false}, {"S", false}, {"D", false}};
+
+bool g_LeftMouseButtonWasPressed = false;
 
 // Variáveis que definem a câmera em coordenadas esféricas, controladas pelo
 // usuário através do mouse (veja função CursorPosCallback()). A posição
@@ -273,7 +281,7 @@ int main(int argc, char *argv[])
     LoadTextureImage("../../models/cubo_textura.jpg");             // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel spheremodel("../../data/sphere.obj");
+    ObjModel spheremodel = g_Bullet.obj;
     ComputeNormals(&spheremodel);
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
@@ -290,7 +298,6 @@ int main(int argc, char *argv[])
     g_Wall.setPos(0.0, -0.7f, 0.0);
     g_Wall.setScale(1.0, 0.3, 2.0);
     g_Wall.rotatez = M_PI_2;
-    //g_Wall.calculateModelMatrix();
 
     cube cubemodel1("../../models/cube.obj");
     g_Cubes.push_back(cubemodel1);
@@ -307,7 +314,6 @@ int main(int argc, char *argv[])
     g_Cubes[2].setScale(1, 1, 3);
 
 
-    //g_Player.setScale(3.3, 1, 3.3);
     g_Player.radius = 0.5;
 
     if (argc > 1)
@@ -343,6 +349,7 @@ int main(int argc, char *argv[])
     g_LastCameraPos = camera_c_point;
     //wall.loadModel("../../data/plane.obj");
     // Ficamos em loop, renderizando, até que o usuário feche a janela
+    g_LeftMouseButtonWasPressed = false;
     while (!glfwWindowShouldClose(window))
     {
         // Aqui executamos as operações de renderização
@@ -440,6 +447,13 @@ int main(int argc, char *argv[])
         glUniform1i(object_id_uniform, PLANE_WALL);
         DrawVirtualObject("plane");
 
+        if (g_Bullet.spawned)
+        {
+            model = g_Bullet.getModel();
+            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(object_id_uniform, SPHERE);
+            DrawVirtualObject("sphere");
+        }
 
         for (auto &&cube : g_Cubes)
         {
@@ -447,6 +461,12 @@ int main(int argc, char *argv[])
             glUniform1i(object_id_uniform, CUBE);
             DrawVirtualObject("Cube");
         }
+
+        if (!g_LeftMouseButtonWasPressed && g_LeftMouseButtonPressed)
+        {
+            fire_bullet(view, camera_c_point);
+        }
+        g_LeftMouseButtonWasPressed = g_LeftMouseButtonPressed;
 
 
 
@@ -1662,4 +1682,11 @@ void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector)
 
 void print_vec4(const glm::vec4 &v){
     std::cout << v.x << " " << v.y << " " << v.z << " " << v.w << "\n";
+}
+
+void fire_bullet(const glm::mat4 &view, const glm::vec4 &camera_c_position)
+{
+    g_Bullet.spawned = true;
+    g_Bullet.setPos(camera_c_position.x, camera_c_position.y, camera_c_position.z);
+    g_Bullet.setMovement(view);
 }

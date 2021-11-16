@@ -13,18 +13,34 @@ struct sphere
     float scalex{1};
     float scaley{1};
     float scalez{1};
+    bool spawned{false};
     ObjModel obj;
+    glm::mat4 view{};
+
+    
     sphere(const char *path): obj(path){};
 
-    glm::vec4 movement_view_vector{};
-
-    glm::mat4 getModel();
-
-    void setPos(float x, float y, float z);
-
-    void setScale(float x, float y, float z);
-
-    void setMovement(glm::vec4 v){
-        movement_view_vector = v;
+    void setMovement(glm::mat4 v){
+        view = v;
     }
+
+    glm::mat4 getModel()
+    {
+        return Matrix_Identity() * Matrix_Translate(posx, posy, posz) * Matrix_Scale(scalex, scaley, scalez);
+    }
+
+    void setPos(float x, float y, float z)
+    {
+        posx = x;
+        posy = y;
+        posz = z;
+    }
+
+    void setScale(float x, float y, float z)
+    {
+        scalex = x;
+        scaley = y;
+        scalez = z;
+    }
+
 };
