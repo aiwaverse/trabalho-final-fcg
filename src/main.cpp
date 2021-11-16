@@ -450,7 +450,14 @@ int main(int argc, char *argv[])
 
         if (g_Bullet.spawned)
         {
+            constexpr double bullet_speed{0.5};
+            auto v = g_Bullet.view;
+            v.x *= bullet_speed;
+            v.y *= bullet_speed;
+            v.z *= bullet_speed;
             model = g_Bullet.getModel();
+            auto new_pos = g_Bullet.getPos() + v;
+            g_Bullet.loadPosVec(new_pos);
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             glUniform1i(object_id_uniform, SPHERE);
             DrawVirtualObject("sphere");
@@ -466,6 +473,7 @@ int main(int argc, char *argv[])
         if (!g_LeftMouseButtonWasPressed && g_LeftMouseButtonPressed)
         {
             fire_bullet(camera_view_vector, camera_c_point);
+            g_Bullet.setMovement(camera_view_vector);
         }
         g_LeftMouseButtonWasPressed = g_LeftMouseButtonPressed;
 

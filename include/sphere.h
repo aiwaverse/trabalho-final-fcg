@@ -43,4 +43,16 @@ struct sphere
         scalez = z;
     }
 
+    glm::vec4 getPos()
+    {
+        return glm::vec4(posx, posy, posz, 0.0);
+    }
+
+    void loadPosVec(const glm::vec4& new_pos)
+    {
+        posx = new_pos.x;
+        posy = new_pos.y;
+        posz = new_pos.z;
+    }
+
 };
