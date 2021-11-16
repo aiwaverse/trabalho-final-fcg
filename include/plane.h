@@ -25,6 +25,9 @@ public:
         posx_ = x;
         posy_ = y;
         posz_ = z;
+        posx = x;
+        posy = y;
+        posz = z;
         calculateModelMatrix();
     }
 
@@ -45,9 +48,9 @@ public:
     void calculateModelMatrix()
     {
         model_matrix = Matrix_Identity() * Matrix_Translate(posx_, posy_, posz_) * Matrix_Scale(scalex, scaley, scalez) * Matrix_Rotate_Z(rotatez);
-        posx = model_matrix[0][0];
-        posy = model_matrix[1][1];
-        posz = model_matrix[2][2];
+        //posx = model_matrix[0][0];
+        //posy = model_matrix[1][1];
+        //posz = model_matrix[2][2];
     }
 
     glm::mat4 getModel()
