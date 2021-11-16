@@ -36,7 +36,7 @@ uniform sampler2D TextureImage2;
 uniform sampler2D TextureImage3;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
-out vec3 color;
+out vec4 color;
 
 // Constantes
 #define M_PI   3.14159265358979323846
@@ -126,25 +126,28 @@ void main()
         V = texcoords.y;
     }
 
+    // Alpha default = 1 = 100% opaco = 0% transparente
+    color.a = 1;
+
     // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
     vec3 Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
     vec3 Kd1 = texture(TextureImage1, vec2(U,V)).rgb;
     vec3 Kd2 = texture(TextureImage2, vec2(U,V)).rgb;
-    vec3 KdHUD = texture(TextureImage3, vec2(U,V)).rgb;
+    vec4 KdHUD = texture(TextureImage3, vec2(U,V)).rgba; // Obtemos RGBA da textura do HUD
 
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
     if (object_id == RIFLE)
-        color = Kd2 * (lambert + 0.25);
+        color.rgb = Kd2 * (lambert + 0.25);
     else if (object_id == PLANE)
-        color = Kd1 * (lambert + 0.01);
+        color.rgb = Kd1 * (lambert + 0.01);
     else if (object_id == HUD)
-        color = KdHUD * (lambert + 0.01);
+        color.rgba = KdHUD;
     else
-        color = Kd0 * (lambert + 0.01);
+        color.rgb = Kd0 * (lambert + 0.01);
 
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
-    color = pow(color, vec3(1.0,1.0,1.0)/2.2);
+    color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
 } 
 
