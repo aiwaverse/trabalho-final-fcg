@@ -16,6 +16,8 @@
 //    #include <cstdio> // Em C++
 //
 #include <cmath>
+#define M_PI 3.14159265358979323846
+#define M_PI_2 1.57079632679489661923
 #include <cstdio>
 #include <cstdlib>
 
@@ -445,7 +447,7 @@ int main(int argc, char *argv[])
             glUniform1i(object_id_uniform, CUBE);
             DrawVirtualObject("Cube");
         }
-        
+
 
 
         // Render do rifle acima de todos os layers (exceto possível futuro HUD)
@@ -1620,7 +1622,7 @@ void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector)
     glm::vec4 up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
     auto w = -view_vector / norm(view_vector);
     auto u = crossproduct(up_vector, w) / norm(crossproduct(up_vector, w));
-    
+
     if (g_PressedKeys["W"])
     {
         calculate_pos.x -= w.x * speed;
