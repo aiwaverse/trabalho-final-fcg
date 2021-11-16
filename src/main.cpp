@@ -272,7 +272,7 @@ int main(int argc, char *argv[])
     LoadTextureImage("../../models/light-gray-concrete-wall.jpg"); // TextureImage1
     LoadTextureImage("../../models/rifle_Base.png");               // TextureImage2
     LoadTextureImage("../../models/cubo_textura.jpg");             // TextureImage3
-    LoadTextureImage("../../models/crosshair.png");              // TextureImage4
+    LoadTextureImage("../../models/crosshair.png");                // TextureImage4
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
@@ -424,10 +424,10 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
         // Desenhamos o modelo da esfera
-        model = Matrix_Translate(-1.0f, 0.0f, 0.0f) * Matrix_Rotate_Z(0.6f) * Matrix_Rotate_X(0.2f) * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(object_id_uniform, SPHERE);
-        //DrawVirtualObject("sphere");
+        // model = Matrix_Translate(-1.0f, 0.0f, 0.0f) * Matrix_Rotate_Z(0.6f) * Matrix_Rotate_X(0.2f) * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+        // glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        // glUniform1i(object_id_uniform, SPHERE);
+        // DrawVirtualObject("sphere");
 
         // Desenhamos o plano do chão
         model = Matrix_Translate(0.0f, -1.1f, 0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f);
@@ -455,16 +455,16 @@ int main(int argc, char *argv[])
 
 
 
-        // Render do rifle acima de todos os layers (exceto possível futuro HUD)
+        // Render do rifle acima de todos os layers (exceto o HUD)
 
         model = Matrix_Scale(0.5f, 0.5f, 0.5f) * Matrix_Translate(0.45f, 0.0f, 0.0f) * Matrix_Rotate_X(M_PI) * Matrix_Rotate_Z(M_PI) * Matrix_Translate(0.0f, -0.35f, 0.85f);
-        glDisable(GL_DEPTH_TEST);
+        //glDisable(GL_DEPTH_TEST);
         glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
         glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, RIFLE);
         DrawVirtualObject("rifle");
-        glEnable(GL_DEPTH_TEST);
+        //glEnable(GL_DEPTH_TEST);
 
         // Desenhando o HUD
         
@@ -485,6 +485,7 @@ int main(int argc, char *argv[])
         glUniform1i(object_id_uniform, HUD);
         DrawVirtualObject("hud");
         glEnable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
 
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
