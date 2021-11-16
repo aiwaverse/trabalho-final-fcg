@@ -24,6 +24,7 @@ uniform mat4 projection;
 #define PLANE  2
 #define CUBE   3
 #define PLANE_WALL 4
+#define HUD 5
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -35,9 +36,10 @@ uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
 uniform sampler2D TextureImage2;
 uniform sampler2D TextureImage3;
+uniform sampler2d TextureImage4;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
-out vec3 color;
+out vec4 color;
 
 // Constantes
 #define M_PI   3.14159265358979323846
@@ -129,18 +131,22 @@ void main()
         U = (position_model.x - minx)/(maxx - minx);
         V = (position_model.y - miny)/(maxy - miny);
     }
-    else if ( object_id == PLANE || object_id == PLANE_WALL )
+    else if ( object_id == PLANE || object_id == HUD || object_id == PLANE_WALL )
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
         V = texcoords.y;
     }
 
+    // Alpha default = 1 = 100% opaco = 0% transparente
+    color.a = 1;
+
     // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
     vec3 KdSphere = texture(TextureImage0, vec2(U,V)).rgb;
     vec3 KdPlane = texture(TextureImage1, vec2(U,V)).rgb;
     vec3 KdRifle = texture(TextureImage2, vec2(U,V)).rgb;
     vec3 KdCube = texture(TextureImage3, vec2(U,V)).rgb;
+    vec4 KdHUD = texture(TextureImage4, vec2(U,V)).rgba; // Obtemos RGBA da textura do HUD
 
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
@@ -180,36 +186,41 @@ void main()
         Ks = vec3(0.0, 0.0, 0.0);
         q = 20.0;
     }
-        // Espectro da fonte de iluminação
-    vec3 I = vec3(1.0,1.0,1.0); // PREENCH AQUI o espectro da fonte de luz
-
-    // Espectro da luz ambiente
-    vec3 Ia = vec3(0.2,0.2,0.2); // PREENCHA AQUI o espectro da luz ambiente
-
-    // Termo difuso utilizando a lei dos cossenos de Lambert
-    vec3 lambert_diffuse_term = Kd * I * max(0, dot(n, l)); // PREENCHA AQUI o termo difuso de Lambert
-
-    // Termo ambiente
-    vec3 ambient_term = Ka * Ia; // PREENCHA AQUI o termo ambiente
-    vec3 phong_specular_term;
-    if ( object_id == CUBE )
+    else if (object_id == HUD)
+        color.rgba = KdHUD;
+    if (object_id != HUD)
     {
-        // Blinn-Phong
-        vec4 h = normalize(l + v);
-        phong_specular_term = Ks * I * pow(max(0, dot(n, h)), q);
-    }
-    else
-    {
-        // Termo especular utilizando o modelo de iluminação de Phong
-        phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q); // PREENCH AQUI o termo especular de Phong
-    }
+            // Espectro da fonte de iluminação
+        vec3 I = vec3(1.0,1.0,1.0); // PREENCH AQUI o espectro da fonte de luz
 
-    // Cor final do fragmento calculada com uma combinação dos termos difuso,
-    // especular, e ambiente. Veja slide 129 do documento Aula_17_e_18_Modelos_de_Iluminacao.pdf.
-    color = lambert_diffuse_term + ambient_term + phong_specular_term;
+        // Espectro da luz ambiente
+        vec3 Ia = vec3(0.2,0.2,0.2); // PREENCHA AQUI o espectro da luz ambiente
 
-    // Cor final com correção gamma, considerando monitor sRGB.
-    // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
-    color = pow(color, vec3(1.0,1.0,1.0)/2.2);
+        // Termo difuso utilizando a lei dos cossenos de Lambert
+        vec3 lambert_diffuse_term = Kd * I * max(0, dot(n, l)); // PREENCHA AQUI o termo difuso de Lambert
+
+        // Termo ambiente
+        vec3 ambient_term = Ka * Ia; // PREENCHA AQUI o termo ambiente
+        vec3 phong_specular_term;
+        if ( object_id == CUBE )
+        {
+            // Blinn-Phong
+            vec4 h = normalize(l + v);
+            phong_specular_term = Ks * I * pow(max(0, dot(n, h)), q);
+        }
+        else
+        {
+            // Termo especular utilizando o modelo de iluminação de Phong
+            phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q); // PREENCH AQUI o termo especular de Phong
+        }
+
+        // Cor final do fragmento calculada com uma combinação dos termos difuso,
+        // especular, e ambiente. Veja slide 129 do documento Aula_17_e_18_Modelos_de_Iluminacao.pdf.
+        color = lambert_diffuse_term + ambient_term + phong_specular_term;
+
+        // Cor final com correção gamma, considerando monitor sRGB.
+        // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
+        color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
+    }
 } 
 

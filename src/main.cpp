@@ -59,6 +59,7 @@
 #define PLANE 2
 #define CUBE 3
 #define PLANE_WALL 4
+#define HUD 5
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
@@ -267,10 +268,11 @@ int main(int argc, char *argv[])
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../models/textura_bala.jpg");    // TextureImage0
+    LoadTextureImage("../../models/textura_bala.jpg");             // TextureImage0
     LoadTextureImage("../../models/light-gray-concrete-wall.jpg"); // TextureImage1
     LoadTextureImage("../../models/rifle_Base.png");               // TextureImage2
     LoadTextureImage("../../models/cubo_textura.jpg");             // TextureImage3
+    LoadTextureImage("../../models/crosshair.png");              // TextureImage4
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
@@ -286,6 +288,9 @@ int main(int argc, char *argv[])
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
+    ObjModel hudmodel("../../models/hud.obj");
+    ComputeNormals(&hudmodel);
+    BuildTrianglesAndAddToVirtualScene(&hudmodel);
 
     g_Wall.setPos(0.0, -0.7f, 0.0);
     g_Wall.setScale(1.0, 0.3, 2.0);
@@ -430,6 +435,26 @@ int main(int argc, char *argv[])
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
 
+        // Desenhando o HUD
+        
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
+        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));      
+
+        // O crosshair terá altura igual a 10% da altura da tela, e será
+        // "quadrado" (pois tem origem em uma imagem de textura quadrada)
+        
+        float crosshair_height_in_NDC = 0.1;
+        float crosshair_width_in_NDC  = crosshair_height_in_NDC / g_ScreenRatio;
+        model = Matrix_Scale( crosshair_width_in_NDC, crosshair_height_in_NDC, 1.0f );
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+
+        glUniform1i(object_id_uniform, HUD);
+        DrawVirtualObject("hud");
+        glEnable(GL_DEPTH_TEST);
+
         // Renderização das paredes (dois planos, um de cada lado)
         model = g_Wall.getModel();
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
@@ -511,7 +536,7 @@ void LoadTextureImage(const char *filename)
     int width;
     int height;
     int channels;
-    unsigned char *data = stbi_load(filename, &width, &height, &channels, 3);
+    unsigned char *data = stbi_load(filename, &width, &height, &channels, 4);
 
     if (data == NULL)
     {
@@ -544,7 +569,7 @@ void LoadTextureImage(const char *filename)
     GLuint textureunit = g_NumLoadedTextures;
     glActiveTexture(GL_TEXTURE0 + textureunit);
     glBindTexture(GL_TEXTURE_2D, texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     glBindSampler(textureunit, sampler_id);
 
@@ -634,6 +659,7 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(program_id, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage2"), 2);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage3"), 3);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage4"), 4);
     glUseProgram(0);
 }
 
