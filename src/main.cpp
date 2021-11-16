@@ -16,11 +16,14 @@
 //    #include <cstdio> // Em C++
 //
 #include <cmath>
+#define M_PI 3.14159265358979323846
+#define M_PI_2 1.57079632679489661923
 #include <cstdio>
 #include <cstdlib>
 
 // Headers abaixo são específicos de C++
 #include <map>
+#include <iostream>
 #include <stack>
 #include <string>
 #include <vector>
@@ -47,38 +50,16 @@
 // Headers locais, definidos na pasta "include/"
 #include "utils.h"
 #include "matrices.h"
+#include "objmodel.h"
+#include "cube.h"
+#include "collisions.h"
 
 #define SPHERE 0
 #define RIFLE 1
 #define PLANE 2
-#define HUD 3
-
-// Estrutura que representa um modelo geométrico carregado a partir de um
-// arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file .
-struct ObjModel
-{
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-
-    // Este construtor lê o modelo de um arquivo utilizando a biblioteca tinyobjloader.
-    // Veja: https://github.com/syoyo/tinyobjloader
-    ObjModel(const char *filename, const char *basepath = NULL, bool triangulate = true)
-    {
-        printf("Carregando modelo \"%s\"... ", filename);
-
-        std::string err;
-        bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename, basepath, triangulate);
-
-        if (!err.empty())
-            fprintf(stderr, "\n%s\n", err.c_str());
-
-        if (!ret)
-            throw std::runtime_error("Erro ao carregar modelo.");
-
-        printf("OK.\n");
-    }
-};
+#define CUBE 3
+#define PLANE_WALL 4
+#define HUD 5
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
@@ -109,6 +90,8 @@ void TextRendering_PrintMatrixVectorProduct(GLFWwindow *window, glm::mat4 M, glm
 void TextRendering_PrintMatrixVectorProductMoreDigits(GLFWwindow *window, glm::mat4 M, glm::vec4 v, float x, float y, float scale = 1.0f);
 void TextRendering_PrintMatrixVectorProductDivW(GLFWwindow *window, glm::mat4 M, glm::vec4 v, float x, float y, float scale = 1.0f);
 
+void print_vec4(const glm::vec4 &v);
+
 // Funções abaixo renderizam como texto na janela OpenGL algumas matrizes e
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowModelViewProjection(GLFWwindow *window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
@@ -128,6 +111,8 @@ void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 // Funções para controle de câmera
 void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector);
 void changeCameraView(glm::vec4 &view_vector);
+
+glm::vec4 g_LastCameraPos{};
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -160,6 +145,9 @@ float g_ScreenRatio = 1.0f;
 float g_AngleX = 0.0f;
 float g_AngleY = 0.0f;
 float g_AngleZ = 0.0f;
+std::vector<cube> g_Cubes{};
+
+cylinder g_Player = cylinder();
 
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
 // pressionado no momento atual. Veja função MouseButtonCallback().
@@ -189,6 +177,8 @@ bool g_UsePerspectiveProjection = true;
 
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
+
+plane g_Wall = plane("../../data/plane.obj");
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint vertex_shader_id;
@@ -278,10 +268,11 @@ int main(int argc, char *argv[])
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
-    LoadTextureImage("../../models/light-gray-concrete-wall.jpg");   // TextureImage1
-    LoadTextureImage("../../models/rifle_Base.png");                 // TextureImage2
-    LoadTextureImage("../../models/crosshair.png");                  // TextureImage3
+    LoadTextureImage("../../models/textura_bala.jpg");             // TextureImage0
+    LoadTextureImage("../../models/light-gray-concrete-wall.jpg"); // TextureImage1
+    LoadTextureImage("../../models/rifle_Base.png");               // TextureImage2
+    LoadTextureImage("../../models/cubo_textura.jpg");             // TextureImage3
+    LoadTextureImage("../../models/crosshair.png");              // TextureImage4
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
@@ -300,6 +291,29 @@ int main(int argc, char *argv[])
     ObjModel hudmodel("../../models/hud.obj");
     ComputeNormals(&hudmodel);
     BuildTrianglesAndAddToVirtualScene(&hudmodel);
+
+    g_Wall.setPos(0.0, -0.7f, 0.0);
+    g_Wall.setScale(1.0, 0.3, 2.0);
+    g_Wall.rotatez = M_PI_2;
+    //g_Wall.calculateModelMatrix();
+
+    cube cubemodel1("../../models/cube.obj");
+    g_Cubes.push_back(cubemodel1);
+    g_Cubes.push_back(cubemodel1);
+    g_Cubes.push_back(cubemodel1);
+    ComputeNormals(&cubemodel1.cubemodel);
+    BuildTrianglesAndAddToVirtualScene(&cubemodel1.cubemodel);
+
+    g_Cubes[0].setPos(3, 0, -3);
+    g_Cubes[0].setScale(3, 1, 1);
+    g_Cubes[1].setPos(3, 0, 3);
+    g_Cubes[1].setScale(3, 1, 1);
+    g_Cubes[2].setPos(6, 0, 0);
+    g_Cubes[2].setScale(1, 1, 3);
+
+
+    //g_Player.setScale(3.3, 1, 3.3);
+    g_Player.radius = 0.5;
 
     if (argc > 1)
     {
@@ -320,18 +334,19 @@ int main(int argc, char *argv[])
 
     // Variáveis auxiliares utilizadas para chamada à função
     // TextRendering_ShowModelViewProjection(), armazenando matrizes 4x4.
-    glm::mat4 the_projection;
-    glm::mat4 the_model;
-    glm::mat4 the_view;
+    // glm::mat4 the_projection;
+    // glm::mat4 the_model;
+    // glm::mat4 the_view;
 
     // definição da câmera
-    auto camera_c_point = glm::vec4(0.0f, 0.0f, -3.0f, 1.0f);
+    auto camera_c_point = glm::vec4(0.5f, 0.0f, 0.0f, 1.0f);
     auto camera_view_vector = glm::vec4(
         cos(g_CameraPhi) * sin(g_CameraTheta),
         -sin(g_CameraPhi),
         cos(g_CameraPhi) * cos(g_CameraTheta),
         0.0f);
-
+    g_LastCameraPos = camera_c_point;
+    //wall.loadModel("../../data/plane.obj");
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
@@ -357,13 +372,17 @@ int main(int argc, char *argv[])
         // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
         // e ScrollCallback().
-        float r = g_CameraDistance;
+        // float r = g_CameraDistance;
 
         // Definição de movimento de câmera
         changeCameraPos(camera_c_point, camera_view_vector);
         changeCameraView(camera_view_vector);
         glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
+        g_Player.posx = camera_c_point.x;
+        g_Player.posy = camera_c_point.y;
+        g_Player.posz = camera_c_point.z;
+        //print_vec4(camera_c_point);
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
         glm::mat4 view = Matrix_Camera_View(camera_c_point, camera_view_vector, camera_up_vector);
@@ -373,7 +392,7 @@ int main(int argc, char *argv[])
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
         float nearplane = -0.1f; // Posição do "near plane"
-        float farplane = -20.0f; // Posição do "far plane"
+        float farplane = -30.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -398,16 +417,6 @@ int main(int argc, char *argv[])
 
         glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
 
-        // desenhando o rifle
-        model = Matrix_Scale(0.5f, 0.5f, 0.5f) * Matrix_Translate(0.45f, 0.0f, 0.0f) * Matrix_Rotate_X(M_PI) * Matrix_Rotate_Z(M_PI) * Matrix_Translate(0.0f, -0.35f, 0.85f);
-
-        glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
-        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));      
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(object_id_uniform, RIFLE);
-        DrawVirtualObject("rifle");
-
-
         // Enviamos as matrizes "view" e "projection" para a placa de vídeo
         // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
         // efetivamente aplicadas em todos os pontos.
@@ -418,14 +427,13 @@ int main(int argc, char *argv[])
         model = Matrix_Translate(-1.0f, 0.0f, 0.0f) * Matrix_Rotate_Z(0.6f) * Matrix_Rotate_X(0.2f) * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE);
-        DrawVirtualObject("sphere");
+        //DrawVirtualObject("sphere");
 
         // Desenhamos o plano do chão
         model = Matrix_Translate(0.0f, -1.1f, 0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
-
 
         // Desenhando o HUD
         
@@ -447,6 +455,36 @@ int main(int argc, char *argv[])
         DrawVirtualObject("hud");
         glEnable(GL_DEPTH_TEST);
 
+        // Renderização das paredes (dois planos, um de cada lado)
+        model = g_Wall.getModel();
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform, PLANE_WALL);
+        DrawVirtualObject("plane");
+        model *= Matrix_Rotate_X(M_PI);
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform, PLANE_WALL);
+        DrawVirtualObject("plane");
+
+
+        for (auto &&cube : g_Cubes)
+        {
+            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(cube.getModel()));
+            glUniform1i(object_id_uniform, CUBE);
+            DrawVirtualObject("Cube");
+        }
+
+
+
+        // Render do rifle acima de todos os layers (exceto possível futuro HUD)
+
+        model = Matrix_Scale(0.5f, 0.5f, 0.5f) * Matrix_Translate(0.45f, 0.0f, 0.0f) * Matrix_Rotate_X(M_PI) * Matrix_Rotate_Z(M_PI) * Matrix_Translate(0.0f, -0.35f, 0.85f);
+        glDepthFunc(GL_ALWAYS);
+        glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
+        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform, RIFLE);
+        DrawVirtualObject("rifle");
+        glDepthFunc(GL_LESS);
 
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
@@ -621,6 +659,7 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(program_id, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage2"), 2);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage3"), 3);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage4"), 4);
     glUseProgram(0);
 }
 
@@ -1097,7 +1136,8 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
     float dy = ypos - g_LastCursorPosY;
 
     // Evitando "pulos" da câmera quando o mouse fica fora da tela
-    if (dx > 10.0f || dy > 10.0f){
+    if (dx > 10.0f || dy > 10.0f)
+    {
         g_LastCursorPosX = xpos;
         g_LastCursorPosY = ypos;
         return;
@@ -1603,28 +1643,49 @@ void changeCameraView(glm::vec4 &view_vector)
 
 void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector)
 {
+    glm::vec4 calculate_pos{c_point};
     constexpr auto speed = 0.03f;
     glm::vec4 up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
     auto w = -view_vector / norm(view_vector);
     auto u = crossproduct(up_vector, w) / norm(crossproduct(up_vector, w));
+
     if (g_PressedKeys["W"])
     {
-        c_point.x -= w.x * speed;
-        c_point.z -= w.z * speed;
+        calculate_pos.x -= w.x * speed;
+        calculate_pos.z -= w.z * speed;
     }
     if (g_PressedKeys["S"])
     {
-        c_point.x += w.x * speed;
-        c_point.z += w.z * speed;
+        calculate_pos.x += w.x * speed;
+        calculate_pos.z += w.z * speed;
     }
     if (g_PressedKeys["D"])
     {
-        c_point.x += u.x * speed;
-        c_point.z += u.z * speed;
+        calculate_pos.x += u.x * speed;
+        calculate_pos.z += u.z * speed;
     }
     if (g_PressedKeys["A"])
     {
-        c_point.x -= u.x * speed;
-        c_point.z -= u.z * speed;
+        calculate_pos.x -= u.x * speed;
+        calculate_pos.z -= u.z * speed;
     }
+    if (calculate_pos == g_LastCameraPos)
+        return;
+
+    g_Player.setPos(calculate_pos.x, calculate_pos.y, calculate_pos.z);
+    if (cylinderToPlaneCollision(g_Player, g_Wall))
+        return;
+    for (auto &&cube : g_Cubes)
+    {
+        if (cubeToCylinderCollision(cube, g_Player))
+        {
+            return;
+        }
+    }
+    c_point = calculate_pos;
+    g_LastCameraPos = c_point;
+}
+
+void print_vec4(const glm::vec4 &v){
+    std::cout << v.x << " " << v.y << " " << v.z << " " << v.w << "\n";
 }

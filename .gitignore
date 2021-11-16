@@ -20,12 +20,6 @@
 *.gch
 *.pch
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
 # Shared objects (inc. Windows DLLs)
 *.dll
 *.so
@@ -102,3 +96,4 @@ obj/
 !.vscode/*.code-snippets
 
 # End of https://www.toptal.com/developers/gitignore/api/c++,c,codeblocks,visualstudiocode
+*.cbp
