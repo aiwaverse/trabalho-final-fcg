@@ -435,26 +435,6 @@ int main(int argc, char *argv[])
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
 
-        // Desenhando o HUD
-        
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
-        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));      
-
-        // O crosshair terá altura igual a 10% da altura da tela, e será
-        // "quadrado" (pois tem origem em uma imagem de textura quadrada)
-        
-        float crosshair_height_in_NDC = 0.1;
-        float crosshair_width_in_NDC  = crosshair_height_in_NDC / g_ScreenRatio;
-        model = Matrix_Scale( crosshair_width_in_NDC, crosshair_height_in_NDC, 1.0f );
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-
-        glUniform1i(object_id_uniform, HUD);
-        DrawVirtualObject("hud");
-        glEnable(GL_DEPTH_TEST);
-
         // Renderização das paredes (dois planos, um de cada lado)
         model = g_Wall.getModel();
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
@@ -478,13 +458,33 @@ int main(int argc, char *argv[])
         // Render do rifle acima de todos os layers (exceto possível futuro HUD)
 
         model = Matrix_Scale(0.5f, 0.5f, 0.5f) * Matrix_Translate(0.45f, 0.0f, 0.0f) * Matrix_Rotate_X(M_PI) * Matrix_Rotate_Z(M_PI) * Matrix_Translate(0.0f, -0.35f, 0.85f);
-        glDepthFunc(GL_ALWAYS);
+        glDisable(GL_DEPTH_TEST);
         glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
         glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, RIFLE);
         DrawVirtualObject("rifle");
-        glDepthFunc(GL_LESS);
+        glEnable(GL_DEPTH_TEST);
+
+        // Desenhando o HUD
+        
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
+        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));      
+
+        // O crosshair terá altura igual a 10% da altura da tela, e será
+        // "quadrado" (pois tem origem em uma imagem de textura quadrada)
+        
+        float crosshair_height_in_NDC = 0.1;
+        float crosshair_width_in_NDC  = crosshair_height_in_NDC / g_ScreenRatio;
+        model = Matrix_Scale( crosshair_width_in_NDC, crosshair_height_in_NDC, 1.0f );
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+
+        glUniform1i(object_id_uniform, HUD);
+        DrawVirtualObject("hud");
+        glEnable(GL_DEPTH_TEST);
 
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
