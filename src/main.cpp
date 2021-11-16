@@ -113,7 +113,7 @@ void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector);
 void changeCameraView(glm::vec4 &view_vector);
 
 // Função para controle do tiro
-void fire_bullet(const glm::mat4 &view, const glm::vec4 &camera_c_position);
+void fire_bullet(const glm::vec4 &view, const glm::vec4 &camera_c_position);
 
 glm::vec4 g_LastCameraPos{};
 
@@ -294,6 +294,7 @@ int main(int argc, char *argv[])
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
+    g_Bullet.setScale(0.1, 0.1, 0.1);
 
     g_Wall.setPos(0.0, -0.7f, 0.0);
     g_Wall.setScale(1.0, 0.3, 2.0);
@@ -464,7 +465,7 @@ int main(int argc, char *argv[])
 
         if (!g_LeftMouseButtonWasPressed && g_LeftMouseButtonPressed)
         {
-            fire_bullet(view, camera_c_point);
+            fire_bullet(camera_view_vector, camera_c_point);
         }
         g_LeftMouseButtonWasPressed = g_LeftMouseButtonPressed;
 
@@ -1684,7 +1685,7 @@ void print_vec4(const glm::vec4 &v){
     std::cout << v.x << " " << v.y << " " << v.z << " " << v.w << "\n";
 }
 
-void fire_bullet(const glm::mat4 &view, const glm::vec4 &camera_c_position)
+void fire_bullet(const glm::vec4 &view, const glm::vec4 &camera_c_position)
 {
     g_Bullet.spawned = true;
     g_Bullet.setPos(camera_c_position.x, camera_c_position.y, camera_c_position.z);

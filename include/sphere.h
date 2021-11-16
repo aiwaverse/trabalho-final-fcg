@@ -15,12 +15,12 @@ struct sphere
     float scalez{1};
     bool spawned{false};
     ObjModel obj;
-    glm::mat4 view{};
+    glm::vec4 view{};
 
-    
+
     sphere(const char *path): obj(path){};
 
-    void setMovement(glm::mat4 v){
+    void setMovement(glm::vec4 v){
         view = v;
     }
 
