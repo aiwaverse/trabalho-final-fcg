@@ -434,7 +434,15 @@ int main(int argc, char *argv[])
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
         glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));      
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
+
+        // O crosshair terá altura igual a 10% da altura da tela, e será
+        // "quadrado" (pois tem origem em uma imagem de textura quadrada)
+        
+        float crosshair_height_in_NDC = 0.1;
+        float crosshair_width_in_NDC  = crosshair_height_in_NDC / g_ScreenRatio;
+        model = Matrix_Scale( crosshair_width_in_NDC, crosshair_height_in_NDC, 1.0f );
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+
         glUniform1i(object_id_uniform, HUD);
         DrawVirtualObject("hud");
         glEnable(GL_DEPTH_TEST);
@@ -490,7 +498,7 @@ void LoadTextureImage(const char *filename)
     int width;
     int height;
     int channels;
-    unsigned char *data = stbi_load(filename, &width, &height, &channels, 3);
+    unsigned char *data = stbi_load(filename, &width, &height, &channels, 4);
 
     if (data == NULL)
     {
@@ -523,7 +531,7 @@ void LoadTextureImage(const char *filename)
     GLuint textureunit = g_NumLoadedTextures;
     glActiveTexture(GL_TEXTURE0 + textureunit);
     glBindTexture(GL_TEXTURE_2D, texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     glBindSampler(textureunit, sampler_id);
 
