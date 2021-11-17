@@ -114,6 +114,8 @@ void changeCameraView(glm::vec4 &view_vector);
 
 // Função para controle do tiro
 void fire_bullet(const glm::vec4 &view, const glm::vec4 &camera_c_position);
+void move_bullet(sphere &bullet, double delta_t);
+glm::vec4 multiply_by_constant(const glm::vec4 &v, double d);
 
 glm::vec4 g_LastCameraPos{};
 
@@ -275,7 +277,7 @@ int main(int argc, char *argv[])
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../models/textura_bala.jpg");    // TextureImage0
+    LoadTextureImage("../../models/textura_bala.jpg");             // TextureImage0
     LoadTextureImage("../../models/light-gray-concrete-wall.jpg"); // TextureImage1
     LoadTextureImage("../../models/rifle_Base.png");               // TextureImage2
     LoadTextureImage("../../models/cubo_textura.jpg");             // TextureImage3
@@ -294,7 +296,7 @@ int main(int argc, char *argv[])
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
-    g_Bullet.setScale(0.1, 0.1, 0.1);
+    g_Bullet.radius = 0.05;
 
     g_Wall.setPos(0.0, -0.7f, 0.0);
     g_Wall.setScale(1.0, 0.3, 2.0);
@@ -313,7 +315,6 @@ int main(int argc, char *argv[])
     g_Cubes[1].setScale(3, 1, 1);
     g_Cubes[2].setPos(6, 0, 0);
     g_Cubes[2].setScale(1, 1, 3);
-
 
     g_Player.radius = 0.5;
 
@@ -351,6 +352,8 @@ int main(int argc, char *argv[])
     //wall.loadModel("../../data/plane.obj");
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     g_LeftMouseButtonWasPressed = false;
+
+    auto t_prev = glfwGetTime();
     while (!glfwWindowShouldClose(window))
     {
         // Aqui executamos as operações de renderização
@@ -427,9 +430,9 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
         // Desenhamos o modelo da esfera
-        model = Matrix_Translate(-1.0f, 0.0f, 0.0f) * Matrix_Rotate_Z(0.6f) * Matrix_Rotate_X(0.2f) * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(object_id_uniform, SPHERE);
+        //model = Matrix_Translate(-1.0f, 0.0f, 0.0f) * Matrix_Rotate_Z(0.6f) * Matrix_Rotate_X(0.2f) * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+        //glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        //glUniform1i(object_id_uniform, SPHERE);
         //DrawVirtualObject("sphere");
 
         // Desenhamos o plano do chão
@@ -448,20 +451,17 @@ int main(int argc, char *argv[])
         glUniform1i(object_id_uniform, PLANE_WALL);
         DrawVirtualObject("plane");
 
+        auto t_now = glfwGetTime();
+
         if (g_Bullet.spawned)
         {
-            constexpr double bullet_speed{0.5};
-            auto v = g_Bullet.view;
-            v.x *= bullet_speed;
-            v.y *= bullet_speed;
-            v.z *= bullet_speed;
-            model = g_Bullet.getModel();
-            auto new_pos = g_Bullet.getPos() + v;
-            g_Bullet.loadPosVec(new_pos);
-            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(g_Bullet.getModel()));
             glUniform1i(object_id_uniform, SPHERE);
             DrawVirtualObject("sphere");
+            move_bullet(g_Bullet, t_now - t_prev);
         }
+
+        t_prev = t_now;
 
         for (auto &&cube : g_Cubes)
         {
@@ -476,8 +476,6 @@ int main(int argc, char *argv[])
             g_Bullet.setMovement(camera_view_vector);
         }
         g_LeftMouseButtonWasPressed = g_LeftMouseButtonPressed;
-
-
 
         // Render do rifle acima de todos os layers (exceto possível futuro HUD)
 
@@ -1689,13 +1687,41 @@ void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector)
     g_LastCameraPos = c_point;
 }
 
-void print_vec4(const glm::vec4 &v){
+void print_vec4(const glm::vec4 &v)
+{
     std::cout << v.x << " " << v.y << " " << v.z << " " << v.w << "\n";
+}
+
+void move_bullet(sphere &bullet, double delta_t)
+{
+    constexpr double bullet_speed{50};
+    std::cout << "delta_t: " << delta_t << "\n";
+    auto new_pos = bullet.getPos() + multiply_by_constant(bullet.view, bullet_speed * delta_t);
+    bullet.loadPosVec(new_pos);
+    if (new_pos.x > 100.0f || new_pos.x < -100.0f)
+        bullet.spawned = false;
+    // -1.1f pois essa é a posição do chão
+    else if (new_pos.y > 100.0f || new_pos.y < -2.1f)
+        bullet.spawned = false;
+    else if (new_pos.z > 100.0f || new_pos.z < -100.0f)
+        bullet.spawned = false;
+}
+
+glm::vec4 multiply_by_constant(const glm::vec4 &v, double d)
+{
+    auto new_v = glm::vec4();
+    new_v.x = v.x * d;
+    new_v.y = v.y * d;
+    new_v.z = v.z * d;
+    return new_v;
 }
 
 void fire_bullet(const glm::vec4 &view, const glm::vec4 &camera_c_position)
 {
-    g_Bullet.spawned = true;
-    g_Bullet.setPos(camera_c_position.x, camera_c_position.y, camera_c_position.z);
-    g_Bullet.setMovement(view);
+    if (!g_Bullet.spawned)
+    {
+        g_Bullet.spawned = true;
+        g_Bullet.setPos(camera_c_position.x, camera_c_position.y, camera_c_position.z);
+        g_Bullet.setMovement(view);
+    }
 }
