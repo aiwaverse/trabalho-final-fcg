@@ -468,6 +468,11 @@ int main(int argc, char *argv[])
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(cube.getModel()));
             glUniform1i(object_id_uniform, CUBE);
             DrawVirtualObject("Cube");
+            if (g_Bullet.spawned)
+            {
+                if (sphereToCubeCollision(g_Bullet, cube))
+                    g_Bullet.spawned = false;
+            }
         }
 
         if (!g_LeftMouseButtonWasPressed && g_LeftMouseButtonPressed)
@@ -1700,7 +1705,8 @@ void move_bullet(sphere &bullet, double delta_t)
     bullet.loadPosVec(new_pos);
     if (new_pos.x > 100.0f || new_pos.x < -100.0f)
         bullet.spawned = false;
-    // -1.1f pois essa é a posição do chão
+    // -2.1f pois essa é a posição do chão + uma distância se não a bala nem aparece
+    // Se apontando pro chão
     else if (new_pos.y > 100.0f || new_pos.y < -2.1f)
         bullet.spawned = false;
     else if (new_pos.z > 100.0f || new_pos.z < -100.0f)

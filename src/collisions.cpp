@@ -91,3 +91,27 @@ bool cylinderToPlaneCollision(cylinder &cy, plane &p)
     }
     return false;
 }
+
+bool sphereToCubeCollision(sphere &s, cube &c)
+{
+    if (fabs(s.pos.x - c.posx) < c.scalex + s.radius)
+    {
+        /*
+        std::cout << "X: "
+                  << fabs(c.posx - cy.posx)
+                  << " < "
+                  << (cy.getSizeX() + c.scalex)
+                  << " = "
+                  << (fabs(c.posx - cy.posx) < (cy.getSizeX() + c.scalex))
+                  << "\n";
+        */
+        if (fabs(s.pos.y - c.posy) < c.scaley + s.radius)
+        {
+            if (fabs(s.pos.z - c.posz) < c.scalez + s.radius)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
