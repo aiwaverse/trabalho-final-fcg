@@ -25,6 +25,8 @@ uniform mat4 projection;
 #define CUBE   3
 #define PLANE_WALL 4
 #define HUD 5
+#define TARGET 6
+#define SKYBOX 7
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -37,6 +39,8 @@ uniform sampler2D TextureImage1;
 uniform sampler2D TextureImage2;
 uniform sampler2D TextureImage3;
 uniform sampler2D TextureImage4;
+uniform sampler2D TextureImage5;
+uniform sampler2D TextureImage6;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
@@ -62,6 +66,8 @@ void main()
     // Normal do fragmento atual, interpolada pelo rasterizador a partir das
     // normais de cada vértice.
     vec4 n = normalize(normal);
+    if (object_id == SKYBOX)
+        n = normalize(-normal);
 
     // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
     vec4 l = normalize(camera_position - p);
@@ -82,7 +88,7 @@ void main()
     float U = 0.0;
     float V = 0.0;
 
-    if ( object_id == SPHERE )
+    if ( object_id == SPHERE || object_id == SKYBOX)
     {
         // PREENCHA AQUI as coordenadas de textura da esfera, computadas com
         // projeção esférica EM COORDENADAS DO MODELO. Utilize como referência
@@ -108,7 +114,7 @@ void main()
         U = (theta + M_PI)/(2*M_PI);
         V = (phi + M_PI/2)/M_PI;
     }
-    else if ( object_id == RIFLE  || object_id == CUBE)
+    else if ( object_id == RIFLE  || object_id == CUBE || object_id == TARGET)
     {
         // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
         // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
@@ -147,6 +153,8 @@ void main()
     vec3 KdRifle = texture(TextureImage2, vec2(U,V)).rgb;
     vec3 KdCube = texture(TextureImage3, vec2(U,V)).rgb;
     vec4 KdHUD = texture(TextureImage4, vec2(U,V)).rgba; // Obtemos RGBA da textura do HUD
+    vec3 KdTarget = texture(TextureImage5, vec2(U, V)).rgb;
+    vec3 KdSkybox = texture(TextureImage6, vec2(U, V)).rgb;
 
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
@@ -186,41 +194,56 @@ void main()
         Ks = vec3(0.0, 0.0, 0.0);
         q = 20.0;
     }
-    else if (object_id == HUD)
-        color.rgba = KdHUD;
-    if (object_id != HUD)
+    else if (object_id == SKYBOX)
     {
-            // Espectro da fonte de iluminação
-        vec3 I = vec3(1.0,1.0,1.0); // PREENCH AQUI o espectro da fonte de luz
-
-        // Espectro da luz ambiente
-        vec3 Ia = vec3(0.2,0.2,0.2); // PREENCHA AQUI o espectro da luz ambiente
-
-        // Termo difuso utilizando a lei dos cossenos de Lambert
-        vec3 lambert_diffuse_term = Kd * I * max(0, dot(n, l)); // PREENCHA AQUI o termo difuso de Lambert
-
-        // Termo ambiente
-        vec3 ambient_term = Ka * Ia; // PREENCHA AQUI o termo ambiente
-        vec3 phong_specular_term;
-        if ( object_id == CUBE )
-        {
-            // Blinn-Phong
-            vec4 h = normalize(l + v);
-            phong_specular_term = Ks * I * pow(max(0, dot(n, h)), q);
-        }
-        else
-        {
-            // Termo especular utilizando o modelo de iluminação de Phong
-            phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q); // PREENCH AQUI o termo especular de Phong
-        }
-
-        // Cor final do fragmento calculada com uma combinação dos termos difuso,
-        // especular, e ambiente. Veja slide 129 do documento Aula_17_e_18_Modelos_de_Iluminacao.pdf.
-        color.rgb = lambert_diffuse_term + ambient_term + phong_specular_term;
-
-        // Cor final com correção gamma, considerando monitor sRGB.
-        // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
-        color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
+        // TOTALMENTE DIFUSA
+        Kd = KdSkybox * (lambert + 0.01);
+        Ka = vec3(0.0, 0.0, 0.0);
+        Ks = vec3(0.0, 0.0, 0.0);
+        q = 20.0;
     }
+    else if (object_id == TARGET)
+    {
+        Kd = KdTarget * (lambert + 0.01);
+        Ks = vec3(0.3,0.3,0.3);
+        Ka = vec3(0.0,0.0,0.0);
+        q = 20.0;
+    }
+    else if (object_id == HUD)
+    {
+        color.rgba = KdHUD;
+        return;
+    }
+        // Espectro da fonte de iluminação
+    vec3 I = vec3(1.0,1.0,1.0); // PREENCH AQUI o espectro da fonte de luz
+
+    // Espectro da luz ambiente
+    vec3 Ia = vec3(0.2,0.2,0.2); // PREENCHA AQUI o espectro da luz ambiente
+
+    // Termo difuso utilizando a lei dos cossenos de Lambert
+    vec3 lambert_diffuse_term = Kd * I * max(0, dot(n, l)); // PREENCHA AQUI o termo difuso de Lambert
+
+    // Termo ambiente
+    vec3 ambient_term = Ka * Ia; // PREENCHA AQUI o termo ambiente
+    vec3 phong_specular_term;
+    if ( object_id == CUBE || object_id == PLANE || object_id == TARGET )
+    {
+        // Blinn-Phong
+        vec4 h = normalize(l + v);
+        phong_specular_term = Ks * I * pow(max(0, dot(n, h)), q);
+    }
+    else
+    {
+        // Termo especular utilizando o modelo de iluminação de Phong
+        phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q); // PREENCH AQUI o termo especular de Phong
+    }
+
+    // Cor final do fragmento calculada com uma combinação dos termos difuso,
+    // especular, e ambiente. Veja slide 129 do documento Aula_17_e_18_Modelos_de_Iluminacao.pdf.
+    color.rgb = lambert_diffuse_term + ambient_term + phong_specular_term;
+
+    // Cor final com correção gamma, considerando monitor sRGB.
+    // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
+    color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
 } 
 

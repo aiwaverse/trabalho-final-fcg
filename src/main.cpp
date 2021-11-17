@@ -16,8 +16,6 @@
 //    #include <cstdio> // Em C++
 //
 #include <cmath>
-#define M_PI 3.14159265358979323846
-#define M_PI_2 1.57079632679489661923
 #include <cstdio>
 #include <cstdlib>
 
@@ -54,6 +52,7 @@
 #include "cube.h"
 #include "collisions.h"
 #include "sphere.h"
+#include "target.h"
 
 #define SPHERE 0
 #define RIFLE 1
@@ -61,6 +60,15 @@
 #define CUBE 3
 #define PLANE_WALL 4
 #define HUD 5
+#define TARGET 6
+#define SKYBOX 7
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+#ifndef M_PI_2
+#define M_PI_2 1.57079632679489661923
+#endif
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
@@ -152,10 +160,13 @@ float g_AngleX = 0.0f;
 float g_AngleY = 0.0f;
 float g_AngleZ = 0.0f;
 std::vector<cube> g_Cubes{};
+std::vector<target> g_Targets{};
 
 cylinder g_Player = cylinder();
 
 sphere g_Bullet = sphere("../../data/sphere.obj");
+
+sphere g_Skybox = sphere("../../data/sphere.obj");
 
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
 // pressionado no momento atual. Veja função MouseButtonCallback().
@@ -283,6 +294,8 @@ int main(int argc, char *argv[])
     LoadTextureImage("../../models/rifle_Base.png");               // TextureImage2
     LoadTextureImage("../../models/cubo_textura.jpg");             // TextureImage3
     LoadTextureImage("../../models/crosshair.png");                // TextureImage4
+    LoadTextureImage("../../models/alvo.png");                     // TextureImage5
+    LoadTextureImage("../../models/skybox.jpg");                   // TextureImage5
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel = g_Bullet.obj;
@@ -297,25 +310,23 @@ int main(int argc, char *argv[])
     ObjModel planemodel("../../data/plane.obj");
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
-
-
-    g_Bullet.radius = 0.05;
   
     ObjModel hudmodel("../../models/hud.obj");
     ComputeNormals(&hudmodel);
     BuildTrianglesAndAddToVirtualScene(&hudmodel);
 
+    g_Bullet.radius = 0.05;
 
     g_Wall.setPos(0.0, -0.7f, 0.0);
     g_Wall.setScale(1.0, 0.3, 2.0);
     g_Wall.rotatez = M_PI_2;
 
-    cube cubemodel1("../../models/cube.obj");
-    g_Cubes.push_back(cubemodel1);
-    g_Cubes.push_back(cubemodel1);
-    g_Cubes.push_back(cubemodel1);
-    ComputeNormals(&cubemodel1.cubemodel);
-    BuildTrianglesAndAddToVirtualScene(&cubemodel1.cubemodel);
+    cube cubemodel("../../models/cube.obj");
+    g_Cubes.push_back(cubemodel);
+    g_Cubes.push_back(cubemodel);
+    g_Cubes.push_back(cubemodel);
+    ComputeNormals(&cubemodel.cubemodel);
+    BuildTrianglesAndAddToVirtualScene(&cubemodel.cubemodel);
 
     g_Cubes[0].setPos(3, 0, -3);
     g_Cubes[0].setScale(3, 1, 1);
@@ -324,7 +335,14 @@ int main(int argc, char *argv[])
     g_Cubes[2].setPos(6, 0, 0);
     g_Cubes[2].setScale(1, 1, 3);
 
+    target targetmodel("../../models/cube.obj");
+    g_Targets.push_back(targetmodel);
+    g_Targets[0].setPos(-1.5f, -0.2f, 0.0f);
+    g_Targets[0].setScale(0.05f, 0.8f, 0.8f);
+
     g_Player.radius = 0.5;
+
+    g_Skybox.radius = 10;
 
     if (argc > 1)
     {
@@ -390,6 +408,7 @@ int main(int argc, char *argv[])
 
         // Definição de movimento de câmera
         changeCameraPos(camera_c_point, camera_view_vector);
+        g_Skybox.setPos(camera_c_point.x, camera_c_point.y, camera_c_point.z);
         changeCameraView(camera_view_vector);
         glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
@@ -437,6 +456,13 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
+        // Render do Skybox
+        glDisable(GL_CULL_FACE);
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(g_Skybox.getModel()));
+        glUniform1i(object_id_uniform, SKYBOX);
+        DrawVirtualObject("sphere");
+        glEnable(GL_CULL_FACE);
+
         // Desenhamos o modelo da esfera
         //model = Matrix_Translate(-1.0f, 0.0f, 0.0f) * Matrix_Rotate_Z(0.6f) * Matrix_Rotate_X(0.2f) * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
         //glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
@@ -482,6 +508,15 @@ int main(int argc, char *argv[])
                     g_Bullet.spawned = false;
             }
         }
+
+        for (auto &&target : g_Targets)
+        {
+            model = target.getModel();
+            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(object_id_uniform, TARGET);
+            DrawVirtualObject("Cube");
+        }
+        
 
         if (!g_LeftMouseButtonWasPressed && g_LeftMouseButtonPressed)
         {
@@ -696,6 +731,8 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(program_id, "TextureImage2"), 2);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage3"), 3);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage4"), 4);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage5"), 5);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage6"), 6);
     glUseProgram(0);
 }
 
@@ -918,8 +955,7 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), NULL, GL_STATIC_DRAW);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices.size() * sizeof(GLuint), indices.data());
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // XXX Errado!
-    //
+
 
     // "Desligamos" o VAO, evitando assim que operações posteriores venham a
     // alterar o mesmo. Isso evita bugs.
@@ -1709,8 +1745,8 @@ void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector)
         return;
 
     g_Player.setPos(calculate_pos.x, calculate_pos.y, calculate_pos.z);
-    if (cylinderToPlaneCollision(g_Player, g_Wall))
-        return;
+    //if (cylinderToPlaneCollision(g_Player, g_Wall))
+    //    return;
     for (auto &&cube : g_Cubes)
     {
         if (cubeToCylinderCollision(cube, g_Player))
