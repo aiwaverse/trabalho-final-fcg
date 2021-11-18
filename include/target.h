@@ -12,9 +12,13 @@ struct target : public cube
 
     bool spawned{false};
 
+    // the lower, the faster
+    float speed {10};
+
     float t{0};
 
-    target(const char *path) : cube(path){
+    target(const char *path) : cube(path)
+    {
         using namespace std::chrono;
         spawned = true;
         auto now = system_clock::now().time_since_epoch().count();
@@ -29,17 +33,43 @@ struct target : public cube
         else
             signal = -1;
 
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal*static_cast<float>(range0to4(rng))));
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal*static_cast<float>(range0to4(rng))));
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal*static_cast<float>(range0to4(rng))));
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal*static_cast<float>(range0to4(rng))));
+        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
+        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
+        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
+        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
         posx = curve_points[0].x;
         posy = curve_points[0].y;
         posz = curve_points[0].z;
 
         //std::cout << -static_cast<float>(range2to30(rng)) << "\n";
-
     };
+
+    void respawn()
+    {
+        using namespace std::chrono;
+        spawned = true;
+        auto now = system_clock::now().time_since_epoch().count();
+        std::mt19937 rng(now);
+        std::uniform_int_distribution<std::mt19937::result_type> range2to30(2, 20);
+        std::uniform_int_distribution<std::mt19937::result_type> range0to4(0, 4);
+        std::uniform_int_distribution<std::mt19937::result_type> range0to1(0, 1);
+
+        int signal{};
+        if (range0to1(rng) == 0)
+            signal = 1;
+        else
+            signal = -1;
+
+        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
+        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
+        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
+        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
+        posx = curve_points[0].x;
+        posy = curve_points[0].y;
+        posz = curve_points[0].z;
+
+        t = 0;
+    }
 
     bool rotated_y{true};
 

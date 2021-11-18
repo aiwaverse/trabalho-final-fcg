@@ -402,6 +402,14 @@ int main(int argc, char *argv[])
         // os shaders de vértice e fragmentos).
         glUseProgram(program_id);
 
+        if(!targetmodel.spawned){
+            auto old_speed = targetmodel.speed;
+            targetmodel = target("../../models/cube.obj");
+            targetmodel.setScale(0.05f, 0.8f, 0.8f);
+            targetmodel.spawned = true;
+            targetmodel.speed = old_speed - 0.5 < 1 ? 1 : old_speed - 0.5;
+        }
+
         // Computamos a posição da câmera utilizando coordenadas esféricas.  As
         // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
@@ -1821,11 +1829,11 @@ void fire_bullet(const glm::vec4 &view, const glm::vec4 &camera_c_position)
 void move_target(target &t, float delta_t)
 {
     static int signal {1};
-    if (t.t + signal*delta_t/10 > 1 || t.t + signal*delta_t/10 < 0)
+    if (t.t + signal*delta_t/t.speed > 1 || t.t + signal*delta_t/t.speed < 0)
     {
         signal *= -1;
     }
-    t.t += signal*delta_t/10;
+    t.t += signal*delta_t/t.speed;
     std::cout << t.t << "\n";
     t.calculate_bezier();
 }
