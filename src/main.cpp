@@ -125,6 +125,7 @@ void changeCameraView(glm::vec4 &view_vector);
 void fire_bullet(const glm::vec4 &view, const glm::vec4 &camera_c_position);
 void move_bullet(sphere &bullet, double delta_t);
 glm::vec4 multiply_by_constant(const glm::vec4 &v, double d);
+void move_target(target &t, float delta_t);
 
 glm::vec4 g_LastCameraPos{};
 
@@ -336,9 +337,10 @@ int main(int argc, char *argv[])
     g_Cubes[2].setScale(1, 1, 3);
 
     target targetmodel("../../models/cube.obj");
-    g_Targets.push_back(targetmodel);
+    targetmodel.setScale(0.05f, 0.8f, 0.8f);
+    //g_Targets.push_back(targetmodel);
     //g_Targets[0].setPos(-1.5f, -0.2f, 0.0f);
-    g_Targets[0].setScale(0.05f, 0.8f, 0.8f);
+    //g_Targets[0].setScale(0.05f, 0.8f, 0.8f);
 
     g_Player.radius = 0.5;
 
@@ -505,8 +507,6 @@ int main(int argc, char *argv[])
             move_bullet(g_Bullet, t_now - t_prev);
         }
 
-        t_prev = t_now;
-
         for (auto &&cube : g_Cubes)
         {
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(cube.getModel()));
@@ -519,19 +519,24 @@ int main(int argc, char *argv[])
             }
         }
 
-        for (auto &&target : g_Targets)
+        if (targetmodel.spawned)
         {
-            model = target.getModel();
+            model = targetmodel.getModel();
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             glUniform1i(object_id_uniform, TARGET);
             DrawVirtualObject("Cube");
             if (g_Bullet.spawned)
             {
-                if (sphereToCubeCollision(g_Bullet, target))
+                if (sphereToCubeCollision(g_Bullet, targetmodel))
+                {
                     g_Bullet.spawned = false;
+                    targetmodel.spawned = false;
+                }
             }
+            move_target(targetmodel, t_now - t_prev);
         }
-        
+
+        t_prev = t_now;
 
         if (!g_LeftMouseButtonWasPressed && g_LeftMouseButtonPressed)
         {
@@ -1811,4 +1816,16 @@ void fire_bullet(const glm::vec4 &view, const glm::vec4 &camera_c_position)
         g_Bullet.setPos(camera_c_position.x, camera_c_position.y, camera_c_position.z);
         g_Bullet.setMovement(view);
     }
+}
+
+void move_target(target &t, float delta_t)
+{
+    static int signal {1};
+    if (t.t + signal*delta_t/10 > 1 || t.t + signal*delta_t/10 < 0)
+    {
+        signal *= -1;
+    }
+    t.t += signal*delta_t/10;
+    std::cout << t.t << "\n";
+    t.calculate_bezier();
 }

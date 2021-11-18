@@ -12,8 +12,11 @@ struct target : public cube
 
     bool spawned{false};
 
+    float t{0};
+
     target(const char *path) : cube(path){
         using namespace std::chrono;
+        spawned = true;
         auto now = system_clock::now().time_since_epoch().count();
         std::mt19937 rng(now);
         std::uniform_int_distribution<std::mt19937::result_type> range2to30(2, 20);
@@ -69,7 +72,7 @@ struct target : public cube
             return cube::getModel();
     }
 
-    void calculate_bezier(float t)
+    void calculate_bezier()
     {
         glm::vec3 p0 = curve_points[0];
         glm::vec3 p1 = curve_points[1];
