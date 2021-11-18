@@ -337,12 +337,12 @@ int main(int argc, char *argv[])
 
     target targetmodel("../../models/cube.obj");
     g_Targets.push_back(targetmodel);
-    g_Targets[0].setPos(-1.5f, -0.2f, 0.0f);
+    //g_Targets[0].setPos(-1.5f, -0.2f, 0.0f);
     g_Targets[0].setScale(0.05f, 0.8f, 0.8f);
 
     g_Player.radius = 0.5;
 
-    g_Skybox.radius = 10;
+    g_Skybox.radius = 15;
 
     if (argc > 1)
     {
