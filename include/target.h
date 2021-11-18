@@ -10,8 +10,33 @@ struct target : public cube
 
     target(const char* path) : cube(path){};
 
-    glm::mat4 getModel()
+    bool rotated_y{true};
+
+    // +1.0 e 0.5 porque a bala é muito rápida, e pode "pular" o alvo em um frame
+    // Isso acaba por tornar o alvo mais "grosso" em código, mas não no modelo
+    virtual float getSizeX() override
     {
-        return cube::getModel() * Matrix_Rotate_Y(M_PI_2);
+        if (rotated_y)
+            return scalez + 1.0;
+        return scalex + 1.0;
+    }
+
+    virtual float getSizeY() override
+    {
+        return scaley;
+    }
+
+    virtual float getSizeZ() override
+    {
+        if (rotated_y)
+            return scalex + 0.5;
+        return scalez + 0.5;
+    }
+
+    virtual glm::mat4 getModel() override
+    {
+        if (rotated_y)
+            return cube::getModel() * Matrix_Rotate_Y(M_PI_2);
+        else return cube::getModel();
     }
 };

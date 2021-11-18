@@ -15,9 +15,24 @@ struct cube
     float scaley{1};
     float scalez{1};
     ObjModel cubemodel;
-    cube(const char *path): cubemodel(path) {};
+    cube(const char *path) : cubemodel(path){};
 
-    glm::mat4 getModel()
+    virtual float getSizeX()
+    {
+        return scalex;
+    }
+
+    virtual float getSizeY()
+    {
+        return scaley;
+    }
+
+    virtual float getSizeZ()
+    {
+        return scalez;
+    }
+
+    virtual glm::mat4 getModel()
     {
         return Matrix_Identity() * Matrix_Translate(posx, posy, posz) * Matrix_Scale(scalex, scaley, scalez);
     }

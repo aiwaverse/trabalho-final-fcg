@@ -515,6 +515,11 @@ int main(int argc, char *argv[])
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             glUniform1i(object_id_uniform, TARGET);
             DrawVirtualObject("Cube");
+            if (g_Bullet.spawned)
+            {
+                if (sphereToCubeCollision(g_Bullet, target))
+                    g_Bullet.spawned = false;
+            }
         }
         
 
