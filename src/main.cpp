@@ -161,12 +161,8 @@ float g_AngleX = 0.0f;
 float g_AngleY = 0.0f;
 float g_AngleZ = 0.0f;
 std::vector<cube> g_Cubes{};
-std::vector<target> g_Targets{};
-
 cylinder g_Player = cylinder();
-
 sphere g_Bullet = sphere("../../data/sphere.obj");
-
 sphere g_Skybox = sphere("../../data/sphere.obj");
 
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse

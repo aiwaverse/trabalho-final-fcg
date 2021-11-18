@@ -12,7 +12,7 @@ struct target : public cube
 
     bool spawned{false};
 
-    // the lower, the faster
+    // quanto menor, mais rápdio
     float speed {10};
 
     float t{0};
