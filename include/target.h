@@ -14,16 +14,22 @@ struct target : public cube
 
     target(const char *path) : cube(path){
         using namespace std::chrono;
-        // FONTE: https://stackoverflow.com/questions/13445688/how-to-generate-a-random-number-in-c
         auto now = system_clock::now().time_since_epoch().count();
         std::mt19937 rng(now);
         std::uniform_int_distribution<std::mt19937::result_type> range2to30(2, 20);
         std::uniform_int_distribution<std::mt19937::result_type> range0to4(0, 4);
+        std::uniform_int_distribution<std::mt19937::result_type> range0to1(0, 1);
 
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, -static_cast<float>(range0to4(rng))));
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, -static_cast<float>(range0to4(rng))));
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, -static_cast<float>(range0to4(rng))));
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, -static_cast<float>(range0to4(rng))));
+        int signal{};
+        if (range0to1(rng) == 0)
+            signal = 1;
+        else
+            signal = -1;
+
+        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal*static_cast<float>(range0to4(rng))));
+        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal*static_cast<float>(range0to4(rng))));
+        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal*static_cast<float>(range0to4(rng))));
+        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal*static_cast<float>(range0to4(rng))));
         posx = curve_points[0].x;
         posy = curve_points[0].y;
         posz = curve_points[0].z;
