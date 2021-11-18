@@ -485,6 +485,16 @@ int main(int argc, char *argv[])
         glUniform1i(object_id_uniform, PLANE_WALL);
         DrawVirtualObject("plane");
 
+        // Desenhando um plano em cima da parede de trás
+        // "arruma" a textura feia da lateral do cubo
+        model = Matrix_Identity();
+        model *= Matrix_Translate(4.9999, 0.0, 0.0);
+        model *= Matrix_Scale(1.0, 1.0, 3.0);
+        model *= Matrix_Rotate_Z(M_PI_2) * Matrix_Rotate_Y(M_PI_2);
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform, PLANE_WALL);
+        DrawVirtualObject("plane");
+
         auto t_now = glfwGetTime();
 
         if (g_Bullet.spawned)
