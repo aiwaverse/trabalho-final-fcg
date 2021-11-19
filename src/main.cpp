@@ -104,7 +104,7 @@ void print_vec4(const glm::vec4 &v);
 // Funções abaixo renderizam como texto na janela OpenGL algumas matrizes e
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowModelViewProjection(GLFWwindow *window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
-void TextRendering_ShowEulerAngles(GLFWwindow *window);
+void TextRendering_ShowScorePlayer(GLFWwindow *window);
 void TextRendering_ShowProjection(GLFWwindow *window);
 void TextRendering_ShowFramesPerSecond(GLFWwindow *window);
 
@@ -222,6 +222,9 @@ GLint object_id_uniform;
 GLint bbox_min_uniform;
 GLint bbox_max_uniform;
 
+// Pontuação do jogador
+float g_ScorePlayer = 0.0f;
+
 // Número de texturas carregadas pela função LoadTextureImage()
 GLuint g_NumLoadedTextures = 0;
 
@@ -320,7 +323,7 @@ int main(int argc, char *argv[])
     ObjModel planemodel("../../data/plane.obj");
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
-  
+
     ObjModel hudmodel("../../models/hud.obj");
     ComputeNormals(&hudmodel);
     BuildTrianglesAndAddToVirtualScene(&hudmodel);
@@ -583,13 +586,15 @@ int main(int argc, char *argv[])
                 {
                     g_Bullet.spawned = false;
                     targetmodel.spawned = false;
+                    g_ScorePlayer = g_ScorePlayer + 100.0f;
+
                 }
             }
             move_target(targetmodel, t_now - t_prev);
         }
 
         t_prev = t_now;
-      
+
         if (!g_UseCameraLookat)
         {
 
@@ -638,9 +643,8 @@ int main(int argc, char *argv[])
         //glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
         //TextRendering_ShowModelViewProjection(window, projection, view, model, p_model);
 
-        // Imprimimos na tela os ângulos de Euler que controlam a rotação do
-        // terceiro cubo.
-        TextRendering_ShowEulerAngles(window);
+        // Imprimimos na tela a pontuação do joagador
+        TextRendering_ShowScorePlayer(window);
 
         // Imprimimos na informação sobre a matriz de projeção sendo utilizada.
         TextRendering_ShowProjection(window);
@@ -1535,19 +1539,14 @@ void TextRendering_ShowModelViewProjection(
     TextRendering_PrintMatrixVectorProductMoreDigits(window, viewport_mapping, p_ndc, -1.0f, 1.0f - 26 * pad, 1.0f);
 }
 
-// Escrevemos na tela os ângulos de Euler definidos nas variáveis globais
-// g_AngleX, g_AngleY, e g_AngleZ.
-void TextRendering_ShowEulerAngles(GLFWwindow *window)
+// Escrevemos na tela a pontuação atual do jogador, ela é contabilizada a sim que for disparado o primeiro tiro
+void TextRendering_ShowScorePlayer (GLFWwindow *window)
 {
-    if (!g_ShowInfoText)
-        return;
-
-    float pad = TextRendering_LineHeight(window);
-
-    char buffer[80];
-    snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", g_AngleZ, g_AngleY, g_AngleX);
-
-    TextRendering_PrintString(window, buffer, -1.0f + pad / 10, -1.0f + 2 * pad / 10, 1.0f);
+    char buffer[30];
+    float lineheight = TextRendering_LineHeight(window);
+    float charwidth = TextRendering_CharWidth(window);
+    snprintf(buffer, 30, "Score: %f",g_ScorePlayer);
+    TextRendering_PrintString(window, buffer, -1.0f + charwidth, 1.0f - lineheight, 1.0f);
 }
 
 // Escrevemos na tela qual matriz de projeção está sendo utilizada.
@@ -1893,6 +1892,5 @@ void move_target(target &t, float delta_t)
         signal *= -1;
     }
     t.t += signal*delta_t/t.speed;
-    std::cout << t.t << "\n";
     t.calculate_bezier();
 }

@@ -13,6 +13,9 @@ in vec4 position_model;
 // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
 in vec2 texcoords;
 
+// Modelo de interpolação do Gouraud
+in vec3 gouraud_shading;
+
 // Matrizes computadas no código C++ e enviadas para a GPU
 uniform mat4 model;
 uniform mat4 view;
@@ -104,7 +107,7 @@ void main()
         //   variável position_model
 
         vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
-        
+
         vec4 p = position_model - bbox_center;
 
         float rho = length(p);
@@ -124,7 +127,7 @@ void main()
         // tanto, veja por exemplo o mapeamento da variável 'p_v' utilizando
         // 'h' no slides 158-160 do documento Aula_20_Mapeamento_de_Texturas.pdf.
         // Veja também a Questão 4 do Questionário 4 no Moodle.
-        
+
         float minx = bbox_min.x;
         float maxx = bbox_max.x;
 
@@ -238,12 +241,19 @@ void main()
         phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q); // PREENCH AQUI o termo especular de Phong
     }
 
-    // Cor final do fragmento calculada com uma combinação dos termos difuso,
-    // especular, e ambiente. Veja slide 129 do documento Aula_17_e_18_Modelos_de_Iluminacao.pdf.
-    color.rgb = lambert_diffuse_term + ambient_term + phong_specular_term;
+    gouraud_shading = lambert_diffuse_term + ambient_term + phong_specular_term;
 
-    // Cor final com correção gamma, considerando monitor sRGB.
-    // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
-    color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
-} 
+    if ( object_id == SPHERE )
+    {
+        color.rgb = KdSphere * gouraud_shading;
+    }
+        // Cor final do fragmento calculada com uma combinação dos termos difuso,
+        // especular, e ambiente. Veja slide 129 do documento Aula_17_e_18_Modelos_de_Iluminacao.pdf.
+        color.rgb = lambert_diffuse_term + ambient_term + phong_specular_term;
+
+        // Cor final com correção gamma, considerando monitor sRGB.
+        // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
+        color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
+
+}
 

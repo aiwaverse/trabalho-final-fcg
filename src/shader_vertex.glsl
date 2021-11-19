@@ -19,6 +19,7 @@ out vec4 position_world;
 out vec4 position_model;
 out vec4 normal;
 out vec2 texcoords;
+out vec3 gouraud_shading;
 
 void main()
 {
