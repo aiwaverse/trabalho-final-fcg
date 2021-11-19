@@ -116,6 +116,8 @@ glm::vec4 g_LastCameraPos{};
 
 glm::vec4 g_ViewVectorBackup{};
 glm::vec4 g_CameraPointBackup{};
+float g_CameraPhiBackup{};
+float g_CameraThetaBackup{};
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -397,7 +399,9 @@ int main(int argc, char *argv[])
         if (g_UseCameraLookat)
         {
             float r = 10.0;
-            float y = r*sin(g_CameraPhi);
+            // Usando max pra impedir a câmera de "passar pelo chão"
+            // -0.5 é próximo da altura do plano, gera um bom efeito
+            float y = std::max(r*sin(g_CameraPhi), -0.5);
             float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
             float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
 
@@ -411,14 +415,15 @@ int main(int argc, char *argv[])
             {
                 camera_c_point = g_CameraPointBackup;
                 camera_view_vector = g_ViewVectorBackup;
+                g_CameraPhi = g_CameraPhiBackup;
+                g_CameraTheta = g_CameraThetaBackup;
                 g_ChangingCameras = false;
             }
-            else
-            {
-                changeCameraPos(camera_c_point, camera_view_vector);
-                changeCameraView(camera_view_vector);
-            }
+            changeCameraPos(camera_c_point, camera_view_vector);
+            changeCameraView(camera_view_vector);
 
+            g_CameraPhiBackup = g_CameraPhi;
+            g_CameraThetaBackup = g_CameraTheta;
             g_CameraPointBackup = camera_c_point;
             g_ViewVectorBackup = camera_view_vector;
         }
