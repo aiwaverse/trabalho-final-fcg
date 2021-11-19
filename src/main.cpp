@@ -345,8 +345,8 @@ int main(int argc, char *argv[])
     g_Cubes[0].setScale(3, 1, 1);
     g_Cubes[1].setPos(3, 0, 3);
     g_Cubes[1].setScale(3, 1, 1);
-    g_Cubes[2].setPos(6, 0, 0);
-    g_Cubes[2].setScale(1, 1, 3);
+    g_Cubes[2].setPos(5, 0, 0);
+    g_Cubes[2].setScale(1, 1, 2);
 
     target targetmodel("../../models/cube.obj");
     targetmodel.setScale(0.05f, 0.8f, 0.8f);
@@ -419,9 +419,9 @@ int main(int argc, char *argv[])
 
         if(!targetmodel.spawned){
             auto old_speed = targetmodel.speed;
-            targetmodel = target("../../models/cube.obj");
-            targetmodel.setScale(0.05f, 0.8f, 0.8f);
-            targetmodel.spawned = true;
+            //targetmodel = target("../../models/cube.obj");
+            //targetmodel.setScale(0.05f, 0.8f, 0.8f);
+            targetmodel.respawn();
             targetmodel.speed = old_speed - 0.5 < 1 ? 1 : old_speed - 0.5;
         }
 
@@ -436,7 +436,7 @@ int main(int argc, char *argv[])
         glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
         if (g_UseCameraLookat)
         {
-            float r = 10.0;
+            float r = 15.0;
             // Usando max pra impedir a câmera de "passar pelo chão"
             // -0.5 é próximo da altura do plano, gera um bom efeito
             float y = std::max(r*sin(g_CameraPhi), -0.5);
@@ -543,7 +543,7 @@ int main(int argc, char *argv[])
         // Desenhando um plano em cima da parede de trás
         // "arruma" a textura feia da lateral do cubo
         model = Matrix_Identity();
-        model *= Matrix_Translate(4.9999, 0.0, 0.0);
+        model *= Matrix_Translate(3.9999, 0.0, 0.0);
         model *= Matrix_Scale(1.0, 1.0, 3.0);
         model *= Matrix_Rotate_Z(M_PI_2) * Matrix_Rotate_Y(M_PI_2);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
@@ -596,13 +596,12 @@ int main(int argc, char *argv[])
             // Render do rifle acima de todos os layers (exceto o HUD)
 
             model = Matrix_Scale(0.5f, 0.5f, 0.5f) * Matrix_Translate(0.45f, 0.0f, 0.0f) * Matrix_Rotate_X(M_PI) * Matrix_Rotate_Z(M_PI) * Matrix_Translate(0.0f, -0.35f, 0.85f);
-            //glDisable(GL_DEPTH_TEST);
+            glClear(GL_DEPTH_BUFFER_BIT);
             glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
             glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             glUniform1i(object_id_uniform, RIFLE);
             DrawVirtualObject("rifle");
-            //glEnable(GL_DEPTH_TEST);
 
             // Desenhando o HUD
 
@@ -1853,7 +1852,7 @@ void print_vec4(const glm::vec4 &v)
 void move_bullet(sphere &bullet, double delta_t)
 {
     constexpr double bullet_speed{50};
-    std::cout << "delta_t: " << delta_t << "\n";
+    //std::cout << "delta_t: " << delta_t << "\n";
     auto new_pos = bullet.getPos() + multiply_by_constant(bullet.view, bullet_speed * delta_t);
     bullet.loadPosVec(new_pos);
     if (new_pos.x > 100.0f || new_pos.x < -100.0f)
@@ -1893,6 +1892,6 @@ void move_target(target &t, float delta_t)
         signal *= -1;
     }
     t.t += signal*delta_t/t.speed;
-    std::cout << t.t << "\n";
+    //std::cout << t.t << "\n";
     t.calculate_bezier();
 }
