@@ -531,49 +531,47 @@ int main(int argc, char *argv[])
                     g_Bullet.spawned = false;
             }
         }
-        // Render do rifle acima de todos os layers (exceto possível futuro HUD)
+
         if (!g_UseCameraLookat)
         {
 
-          // Render do rifle acima de todos os layers (exceto o HUD)
+            // Render do rifle acima de todos os layers (exceto o HUD)
 
-          model = Matrix_Scale(0.5f, 0.5f, 0.5f) * Matrix_Translate(0.45f, 0.0f, 0.0f) * Matrix_Rotate_X(M_PI) * Matrix_Rotate_Z(M_PI) * Matrix_Translate(0.0f, -0.35f, 0.85f);
-          //glDisable(GL_DEPTH_TEST);
-          glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
-          glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
-          glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-          glUniform1i(object_id_uniform, RIFLE);
-          DrawVirtualObject("rifle");
-          //glEnable(GL_DEPTH_TEST);
+            model = Matrix_Scale(0.5f, 0.5f, 0.5f) * Matrix_Translate(0.45f, 0.0f, 0.0f) * Matrix_Rotate_X(M_PI) * Matrix_Rotate_Z(M_PI) * Matrix_Translate(0.0f, -0.35f, 0.85f);
+            //glDisable(GL_DEPTH_TEST);
+            glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
+            glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
+            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(object_id_uniform, RIFLE);
+            DrawVirtualObject("rifle");
+            //glEnable(GL_DEPTH_TEST);
 
-          // Desenhando o HUD
+            // Desenhando o HUD
 
-          glDisable(GL_DEPTH_TEST);
-          glEnable(GL_BLEND);
-          glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-          glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
-          glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));      
+            glDisable(GL_DEPTH_TEST);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
+            glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(Matrix_Identity()));
 
-          // O crosshair terá altura igual a 10% da altura da tela, e será
-          // "quadrado" (pois tem origem em uma imagem de textura quadrada)
+            // O crosshair terá altura igual a 10% da altura da tela, e será
+            // "quadrado" (pois tem origem em uma imagem de textura quadrada)
 
-          float crosshair_height_in_NDC = 0.1;
-          float crosshair_width_in_NDC  = crosshair_height_in_NDC / g_ScreenRatio;
-          model = Matrix_Scale( crosshair_width_in_NDC, crosshair_height_in_NDC, 1.0f );
-          glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            float crosshair_height_in_NDC = 0.1;
+            float crosshair_width_in_NDC = crosshair_height_in_NDC / g_ScreenRatio;
+            model = Matrix_Scale(crosshair_width_in_NDC, crosshair_height_in_NDC, 1.0f);
+            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
 
-          glUniform1i(object_id_uniform, HUD);
-          DrawVirtualObject("hud");
-          glEnable(GL_DEPTH_TEST);
-          glDisable(GL_BLEND);
-
-          if (!g_LeftMouseButtonWasPressed && g_LeftMouseButtonPressed)
-          {
-              fire_bullet(camera_view_vector, camera_c_point);
-              g_Bullet.setMovement(camera_view_vector);
-          }
-          g_LeftMouseButtonWasPressed = g_LeftMouseButtonPressed;
-        
+            glUniform1i(object_id_uniform, HUD);
+            DrawVirtualObject("hud");
+            glEnable(GL_DEPTH_TEST);
+            glDisable(GL_BLEND);
+            if (!g_LeftMouseButtonWasPressed && g_LeftMouseButtonPressed)
+            {
+                fire_bullet(camera_view_vector, camera_c_point);
+                g_Bullet.setMovement(camera_view_vector);
+            }
+            g_LeftMouseButtonWasPressed = g_LeftMouseButtonPressed;
         }
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
@@ -1160,25 +1158,17 @@ double g_LastCursorPosX, g_LastCursorPosY;
 // Função callback chamada sempre que o usuário aperta algum dos botões do mouse
 void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 {
-    if(g_UseCameraLookat)
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-        {
-            glfwGetCursorPos(window, &g_LastCursorPosX, &g_LastCursorPosY);
-            g_LeftMouseButtonPressed = true;
-        }
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-        {
+        glfwGetCursorPos(window, &g_LastCursorPosX, &g_LastCursorPosY);
+        g_LeftMouseButtonPressed = true;
+    }
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+    {
         // Quando o usuário soltar o botão esquerdo do mouse, atualizamos a
         // variável abaixo para false.
         g_LeftMouseButtonPressed = false;
-        }
     }
-    else
-    {
-
-    }
-
 }
 
 // Função callback chamada sempre que o usuário movimentar o cursor do mouse em
