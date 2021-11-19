@@ -241,11 +241,10 @@ void main()
         phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q); // PREENCH AQUI o termo especular de Phong
     }
 
-    gouraud_shading = lambert_diffuse_term + ambient_term + phong_specular_term;
-
     if ( object_id == SPHERE )
     {
         color.rgb = KdSphere * gouraud_shading;
+        return;
     }
         // Cor final do fragmento calculada com uma combinação dos termos difuso,
         // especular, e ambiente. Veja slide 129 do documento Aula_17_e_18_Modelos_de_Iluminacao.pdf.
