@@ -4,37 +4,37 @@
 // Admito que não sei explicar porque isso resolve
 bool cubeToCubeCollision(cube &cube1, cube &cube2)
 {
-    if (fabs(cube1.posx - cube2.posx) < (cube1.scalex / 2 + cube2.scalex))
+    if (fabs(cube1.posx - cube2.posx) < (cube1.getSizeX() / 2 + cube2.getSizeX()))
     {
         /*
         std::cout << "X: "
                   << fabs(cube1.posx - cube2.posx)
                   << " < "
-                  << (cube1.scalex / 2 + cube2.scalex)
+                  << (cube1.getSizeX() / 2 + cube2.getSizeX())
                   << " = "
-                  << (fabs(cube1.posx - cube2.posx) < (cube1.scalex / 2 + cube2.scalex))
+                  << (fabs(cube1.posx - cube2.posx) < (cube1.getSizeX() / 2 + cube2.getSizeX()))
                   << "\n";
         */
-        if (fabs(cube1.posy - cube2.posy) < (cube1.scaley / 2 + cube2.scaley))
+        if (fabs(cube1.posy - cube2.posy) < (cube1.getSizeY() / 2 + cube2.getSizeY()))
         {
             /*
             std::cout << "Y: "
                       << fabs(cube1.posy - cube2.posy)
                       << " < "
-                      << (cube1.scaley / 2 + cube2.scaley)
+                      << (cube1.getSizeY() / 2 + cube2.getSizeY())
                       << " = "
-                      << (fabs(cube1.posy - cube2.posy) < (cube1.scaley / 2 + cube2.scaley))
+                      << (fabs(cube1.posy - cube2.posy) < (cube1.getSizeY() / 2 + cube2.getSizeY()))
                       << "\n";
             */
-            if (fabs(cube1.posz - cube2.posz) < (cube1.scalez / 2 + cube2.scalez))
+            if (fabs(cube1.posz - cube2.posz) < (cube1.getSizeZ() / 2 + cube2.getSizeZ()))
             {
                 /*
                 std::cout << "Z: "
                           << fabs(cube1.posz - cube2.posz)
                           << " < "
-                          << (cube1.scalez / 2 + cube2.scalez)
+                          << (cube1.getSizeZ() / 2 + cube2.getSizeZ())
                           << " = "
-                          << (fabs(cube1.posz - cube2.posz) < (cube1.scalez / 2 + cube2.scalez))
+                          << (fabs(cube1.posz - cube2.posz) < (cube1.getSizeZ() / 2 + cube2.getSizeZ()))
                           << "\n";
                 */
                 return true;
@@ -44,22 +44,22 @@ bool cubeToCubeCollision(cube &cube1, cube &cube2)
     return false;
 }
 
-bool cubeToCylinderCollision(const cube &c, cylinder &cy)
+bool cubeToCylinderCollision(cube &c, cylinder &cy)
 {
-    if (fabs(c.posx - cy.posx) < cy.getSizeX() + c.scalex)
+    if (fabs(c.posx - cy.posx) < cy.getSizeX() + c.getSizeX())
     {
         /*
         std::cout << "X: "
                   << fabs(c.posx - cy.posx)
                   << " < "
-                  << (cy.getSizeX() + c.scalex)
+                  << (cy.getSizeX() + c.getSizeX())
                   << " = "
-                  << (fabs(c.posx - cy.posx) < (cy.getSizeX() + c.scalex))
+                  << (fabs(c.posx - cy.posx) < (cy.getSizeX() + c.getSizeX()))
                   << "\n";
         */
-        if (fabs(c.posy - cy.posy) < cy.getSizeY() + c.scaley)
+        if (fabs(c.posy - cy.posy) < cy.getSizeY() + c.getSizeY())
         {
-            if (fabs(c.posz - cy.posz) < cy.getSizeZ() + c.scalez)
+            if (fabs(c.posz - cy.posz) < cy.getSizeZ() + c.getSizeZ())
             {
                 return true;
             }
@@ -76,9 +76,9 @@ bool cylinderToPlaneCollision(cylinder &cy, plane &p)
         std::cout << "X: "
                   << fabs(c.posx - cy.posx)
                   << " < "
-                  << (cy.getSizeX() + c.scalex)
+                  << (cy.getSizeX() + c.getSizeX())
                   << " = "
-                  << (fabs(c.posx - cy.posx) < (cy.getSizeX() + c.scalex))
+                  << (fabs(c.posx - cy.posx) < (cy.getSizeX() + c.getSizeX()))
                   << "\n";
         */
         if (fabs(p.posy - cy.posy) < cy.getSizeY() + p.scaley)
@@ -94,20 +94,32 @@ bool cylinderToPlaneCollision(cylinder &cy, plane &p)
 
 bool sphereToCubeCollision(sphere &s, cube &c)
 {
-    if (fabs(s.pos.x - c.posx) < c.scalex + s.radius)
+    std::cout << "X: "
+              << fabs(s.pos.x - c.posx)
+              << " < "
+              << (c.getSizeX() + s.radius)
+              << " = "
+              << (fabs(s.pos.x - c.posx) < (c.getSizeX() + s.radius))
+              << "\n";
+    if (fabs(s.pos.x - c.posx) < c.getSizeX() + s.radius)
     {
-        /*
-        std::cout << "X: "
-                  << fabs(c.posx - cy.posx)
+        std::cout << "Y: "
+                  << fabs(s.pos.y - c.posy)
                   << " < "
-                  << (cy.getSizeX() + c.scalex)
+                  << (c.getSizeY() + s.radius)
                   << " = "
-                  << (fabs(c.posx - cy.posx) < (cy.getSizeX() + c.scalex))
+                  << (fabs(s.pos.y - c.posy) < (c.getSizeY() + s.radius))
                   << "\n";
-        */
-        if (fabs(s.pos.y - c.posy) < c.scaley + s.radius)
+        if (fabs(s.pos.y - c.posy) < c.getSizeY() + s.radius)
         {
-            if (fabs(s.pos.z - c.posz) < c.scalez + s.radius)
+            std::cout << "Z: "
+                      << fabs(s.pos.z - c.posz)
+                      << " < "
+                      << (c.getSizeZ() + s.radius)
+                      << " = "
+                      << (fabs(s.pos.z - c.posz) < (c.getSizeZ() + s.radius))
+                      << "\n";
+            if (fabs(s.pos.z - c.posz) < c.getSizeZ() + s.radius)
             {
                 return true;
             }
