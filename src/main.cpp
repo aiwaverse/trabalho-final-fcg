@@ -118,7 +118,7 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
 // Funções para controle de câmera
-void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector);
+void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector, float delta_t);
 void changeCameraView(glm::vec4 &view_vector);
 
 // Função para controle do tiro
@@ -397,6 +397,7 @@ int main(int argc, char *argv[])
     g_LeftMouseButtonWasPressed = false;
 
     auto t_prev = glfwGetTime();
+    auto t_prev_camera = glfwGetTime();
     while (!glfwWindowShouldClose(window))
     {
         // Aqui executamos as operações de renderização
@@ -457,7 +458,9 @@ int main(int argc, char *argv[])
                 g_CameraTheta = g_CameraThetaBackup;
                 g_ChangingCameras = false;
             }
-            changeCameraPos(camera_c_point, camera_view_vector);
+            auto t_now_camera = glfwGetTime();
+            changeCameraPos(camera_c_point, camera_view_vector, t_now_camera - t_prev_camera);
+            t_prev_camera = t_now_camera;
             g_Skybox.setPos(camera_c_point.x, camera_c_point.y, camera_c_point.z);
             changeCameraView(camera_view_vector);
 
@@ -1797,10 +1800,10 @@ void changeCameraView(glm::vec4 &view_vector)
     view_vector = glm::normalize(view_vector);
 }
 
-void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector)
+void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector, float delta_t)
 {
     glm::vec4 calculate_pos{c_point};
-    constexpr auto speed = 0.03f;
+    auto speed = 1.8f * delta_t;
     glm::vec4 up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
     auto w = -view_vector / norm(view_vector);
     auto u = crossproduct(up_vector, w) / norm(crossproduct(up_vector, w));
