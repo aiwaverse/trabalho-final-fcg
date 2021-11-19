@@ -114,6 +114,9 @@ void changeCameraView(glm::vec4 &view_vector);
 
 glm::vec4 g_LastCameraPos{};
 
+glm::vec4 g_ViewVectorBackup{};
+glm::vec4 g_CameraPointBackup{};
+
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
 struct SceneObject
@@ -183,6 +186,8 @@ bool g_UseCameraLookat = false;
 
 // Variável que controla os botões de movimentação e tiro
 bool g_EnableButtonsForPlay = true;
+
+bool g_ChangingCameras = false;
 
 plane g_Wall = plane("../../data/plane.obj");
 
@@ -357,6 +362,8 @@ int main(int argc, char *argv[])
         0.0f);
     g_LastCameraPos = camera_c_point;
 
+    auto camera_lookat_l = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera estará olhando.
+
     //wall.loadModel("../../data/plane.obj");
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
@@ -387,24 +394,33 @@ int main(int argc, char *argv[])
 
         // Definição de movimento de câmera
         glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
-        glm::vec4 camera_lookat_l = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para ibde a câmera estará olhando.
-
         if (g_UseCameraLookat)
         {
+            float r = 10.0;
+            float y = r*sin(g_CameraPhi);
+            float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
+            float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
+
+            camera_c_point = glm::vec4(x, y, z, 1.0);
             // Ativa a camera lookat
             camera_view_vector = camera_lookat_l - camera_c_point;
-            changeCameraPos(camera_c_point, camera_view_vector);
-            changeCameraView(camera_view_vector);
         }
         else
         {
-            camera_view_vector = glm::vec4(
-            cos(g_CameraPhi) * sin(g_CameraTheta),
-            -sin(g_CameraPhi),
-            cos(g_CameraPhi) * cos(g_CameraTheta),
-            0.0f);
-            changeCameraPos(camera_c_point, camera_view_vector);
-            changeCameraView(camera_view_vector);
+            if (g_ChangingCameras)
+            {
+                camera_c_point = g_CameraPointBackup;
+                camera_view_vector = g_ViewVectorBackup;
+                g_ChangingCameras = false;
+            }
+            else
+            {
+                changeCameraPos(camera_c_point, camera_view_vector);
+                changeCameraView(camera_view_vector);
+            }
+
+            g_CameraPointBackup = camera_c_point;
+            g_ViewVectorBackup = camera_view_vector;
         }
 
         g_Player.posx = camera_c_point.x;
@@ -1101,7 +1117,7 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 {
     if(g_UseCameraLookat)
     {
-        if (button = GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
         {
             glfwGetCursorPos(window, &g_LastCursorPosX, &g_LastCursorPosY);
             g_LeftMouseButtonPressed = true;
@@ -1318,6 +1334,7 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         g_UseCameraLookat = false;
         g_EnableButtonsForPlay = true;
+        g_ChangingCameras = true;
     }
 
 
