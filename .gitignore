@@ -94,6 +94,3 @@ obj/
 
 # Support for Project snippet scope
 !.vscode/*.code-snippets
-
-# End of https://www.toptal.com/developers/gitignore/api/c++,c,codeblocks,visualstudiocode
-*.cbp
