@@ -30,6 +30,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
+#include <time.h>
 
 // Headers das bibliotecas OpenGL
 #include <glad/glad.h>  // Criação de contexto OpenGL 3.3
@@ -105,6 +106,7 @@ void print_vec4(const glm::vec4 &v);
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowModelViewProjection(GLFWwindow *window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
 void TextRendering_ShowScorePlayer(GLFWwindow *window);
+void TextRendering_ShowFinalScorePlayer(GLFWwindow *window);
 void TextRendering_ShowProjection(GLFWwindow *window);
 void TextRendering_ShowFramesPerSecond(GLFWwindow *window);
 
@@ -187,14 +189,6 @@ float g_CameraTheta = 0.0f;    // Ângulo no plano ZX em relação ao eixo Z
 float g_CameraPhi = 0.0f;      // Ângulo em relação ao eixo Y
 float g_CameraDistance = 3.5f; // Distância da câmera para a origem
 
-// Variáveis que controlam rotação do antebraço
-float g_ForearmAngleZ = 0.0f;
-float g_ForearmAngleX = 0.0f;
-
-// Variáveis que controlam translação do torso
-float g_TorsoPositionX = 0.0f;
-float g_TorsoPositionY = 0.0f;
-
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
 bool g_UsePerspectiveProjection = true;
 
@@ -224,6 +218,8 @@ GLint bbox_max_uniform;
 
 // Pontuação do jogador
 float g_ScorePlayer = 0.0f;
+float g_ScoreValue = 0.0f;
+bool g_CountScore = true;
 
 // Número de texturas carregadas pela função LoadTextureImage()
 GLuint g_NumLoadedTextures = 0;
@@ -257,7 +253,7 @@ int main(int argc, char *argv[])
     // Criamos uma janela do sistema operacional, com 800 colunas e 600 linhas
     // de pixels, e com título "INF01047 ...".
     GLFWwindow *window;
-    window = glfwCreateWindow(800, 600, "INF01047 - 290394 - Gustavo Sleman Lenz", NULL, NULL);
+    window = glfwCreateWindow(800, 600, "INF01047 - 290394 - Gustavo Sleman Lenz | 314518 - Bruno Marques Bastos", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -492,19 +488,6 @@ int main(int argc, char *argv[])
             float field_of_view = 3.141592 / 3.0f;
             projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
         }
-        else
-        {
-            // Projeção Ortográfica.
-            // Para definição dos valores l, r, b, t ("left", "right", "bottom", "top"),
-            // PARA PROJEÇÃO ORTOGRÁFICA veja slides 219-224 do documento Aula_09_Projecoes.pdf.
-            // Para simular um "zoom" ortográfico, computamos o valor de "t"
-            // utilizando a variável g_CameraDistance.
-            float t = 1.5f * g_CameraDistance / 2.5f;
-            float b = -t;
-            float r = t * g_ScreenRatio;
-            float l = -r;
-            projection = Matrix_Orthographic(l, r, b, t, nearplane, farplane);
-        }
 
         glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
 
@@ -574,6 +557,7 @@ int main(int argc, char *argv[])
                     g_Bullet.spawned = false;
             }
         }
+
         if (targetmodel.spawned)
         {
             model = targetmodel.getModel();
@@ -582,12 +566,48 @@ int main(int argc, char *argv[])
             DrawVirtualObject("Cube");
             if (g_Bullet.spawned)
             {
+                double t_score;
+                double t_diference;
                 if (sphereToCubeCollision(g_Bullet, targetmodel))
                 {
+                    if (g_CountScore)
+                    {
+                        t_diference = glfwGetTime();
+                        g_CountScore = false;
+                    }
+
+                    t_score = glfwGetTime();
                     g_Bullet.spawned = false;
                     targetmodel.spawned = false;
-                    g_ScorePlayer = g_ScorePlayer + 100.0f;
 
+                    t_score = t_now - t_diference;
+
+                    printf("t_score = %0.f t_diference = %0.f\n", t_score, t_diference);
+                    TextRendering_ShowFinalScorePlayer(window);
+                    if(t_score < 10.0f)
+                    {
+                        g_ScoreValue = 1000.0f; // Primeiros 10 segundos valem 1_000 pontos
+                        g_ScorePlayer = g_ScorePlayer + g_ScoreValue;
+                    }
+                    else if (t_score < 30.0f)
+                    {
+                        g_ScoreValue = 100.0f; // Entre 10 e 30 segundos os pontos valem 100
+                        g_ScorePlayer = g_ScorePlayer + g_ScoreValue;
+                    }
+                    else if (t_score < 60.0f)
+                    {
+                        g_ScoreValue = 50.0f; // Entre 30 e 60 segundos os pontos valem 50
+                        g_ScorePlayer = g_ScorePlayer + g_ScoreValue;
+                    }
+                    else if (t_score < 120)
+                    {
+                        g_ScoreValue = 10.0f; // Entre 1 minuto e 2 minutos os pontos valem 10
+                        g_ScorePlayer = g_ScorePlayer + g_ScoreValue;
+                    }
+                    else
+                    {
+                        TextRendering_ShowFinalScorePlayer(window);
+                    }
                 }
             }
             move_target(targetmodel, t_now - t_prev);
@@ -635,6 +655,7 @@ int main(int argc, char *argv[])
                 g_Bullet.setMovement(camera_view_vector);
             }
             g_LeftMouseButtonWasPressed = g_LeftMouseButtonPressed;
+
         }
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
@@ -1302,42 +1323,11 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
         g_LastCursorPosX = xpos;
         g_LastCursorPosY = ypos;
 
-        if (g_RightMouseButtonPressed)
-        {
-            // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-            float dx = xpos - g_LastCursorPosX;
-            float dy = ypos - g_LastCursorPosY;
-
-            // Atualizamos parâmetros da antebraço com os deslocamentos
-            g_ForearmAngleZ -= 0.01f * dx;
-            g_ForearmAngleX += 0.01f * dy;
-
-            // Atualizamos as variáveis globais para armazenar a posição atual do
-            // cursor como sendo a última posição conhecida do cursor.
-            g_LastCursorPosX = xpos;
-            g_LastCursorPosY = ypos;
-        }
-
-        if (g_MiddleMouseButtonPressed)
-        {
-            // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-            float dx = xpos - g_LastCursorPosX;
-            float dy = ypos - g_LastCursorPosY;
-
-            // Atualizamos parâmetros da antebraço com os deslocamentos
-            g_TorsoPositionX += 0.01f * dx;
-            g_TorsoPositionY -= 0.01f * dy;
-
-            // Atualizamos as variáveis globais para armazenar a posição atual do
-            // cursor como sendo a última posição conhecida do cursor.
-            g_LastCursorPosX = xpos;
-            g_LastCursorPosY = ypos;
-        }
     }
 }
 
 // Função callback chamada sempre que o usuário movimenta a "rodinha" do mouse.
-void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
+void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset) //////////////////////////////////////////////////////// DAR UMA OLHADA /////////////////////////////////////////////////////////////////////
 {
     if (g_UseCameraLookat)
     {
@@ -1367,58 +1357,6 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
         if (key == GLFW_KEY_0 + i && action == GLFW_PRESS && mod == GLFW_MOD_SHIFT)
             std::exit(100 + i);
     // ==============
-
-    // Se o usuário pressionar a tecla ESC, fechamos a janela.
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GL_TRUE);
-
-    // O código abaixo implementa a seguinte lógica:
-    //   Se apertar tecla X       então g_AngleX += delta;
-    //   Se apertar tecla shift+X então g_AngleX -= delta;
-    //   Se apertar tecla Y       então g_AngleY += delta;
-    //   Se apertar tecla shift+Y então g_AngleY -= delta;
-    //   Se apertar tecla Z       então g_AngleZ += delta;
-    //   Se apertar tecla shift+Z então g_AngleZ -= delta;
-
-    float delta = 3.141592 / 16; // 22.5 graus, em radianos.
-
-    if (key == GLFW_KEY_X && action == GLFW_PRESS)
-    {
-        g_AngleX += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
-    }
-
-    if (key == GLFW_KEY_Y && action == GLFW_PRESS)
-    {
-        g_AngleY += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
-    }
-    if (key == GLFW_KEY_Z && action == GLFW_PRESS)
-    {
-        g_AngleZ += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
-    }
-
-    // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
-    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
-    {
-        g_AngleX = 0.0f;
-        g_AngleY = 0.0f;
-        g_AngleZ = 0.0f;
-        g_ForearmAngleX = 0.0f;
-        g_ForearmAngleZ = 0.0f;
-        g_TorsoPositionX = 0.0f;
-        g_TorsoPositionY = 0.0f;
-    }
-
-    // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
-    if (key == GLFW_KEY_P && action == GLFW_PRESS)
-    {
-        g_UsePerspectiveProjection = true;
-    }
-
-    // Se o usuário apertar a tecla O, utilizamos projeção ortográfica.
-    if (key == GLFW_KEY_O && action == GLFW_PRESS)
-    {
-        g_UsePerspectiveProjection = false;
-    }
 
     // Se o usuário apertar a tecla L, utilizamos a câmera Lookat.
     if (key == GLFW_KEY_L && action == GLFW_PRESS)
@@ -1545,8 +1483,18 @@ void TextRendering_ShowScorePlayer (GLFWwindow *window)
     char buffer[30];
     float lineheight = TextRendering_LineHeight(window);
     float charwidth = TextRendering_CharWidth(window);
-    snprintf(buffer, 30, "Score: %f",g_ScorePlayer);
+    snprintf(buffer, 30, "Score: %.0f",g_ScorePlayer);
     TextRendering_PrintString(window, buffer, -1.0f + charwidth, 1.0f - lineheight, 1.0f);
+}
+
+// Escrevemos na tela a pontuação final do jogador
+void TextRendering_ShowFinalScorePlayer (GLFWwindow *window)
+{
+    char buffer[30];
+    float lineheight = TextRendering_LineHeight(window);
+    float charwidth = TextRendering_CharWidth(window);
+    snprintf(buffer, 30, "Score: %.0f",g_ScorePlayer);
+    TextRendering_PrintString(window, buffer, -1.0f + charwidth - 0.3f , 1.0f - lineheight + 0.3f, 1.0f);
 }
 
 // Escrevemos na tela qual matriz de projeção está sendo utilizada.
@@ -1852,7 +1800,7 @@ void print_vec4(const glm::vec4 &v)
 void move_bullet(sphere &bullet, double delta_t)
 {
     constexpr double bullet_speed{50};
-    std::cout << "delta_t: " << delta_t << "\n";
+    //std::cout << "delta_t: " << delta_t << "\n";
     auto new_pos = bullet.getPos() + multiply_by_constant(bullet.view, bullet_speed * delta_t);
     bullet.loadPosVec(new_pos);
     if (new_pos.x > 100.0f || new_pos.x < -100.0f)
