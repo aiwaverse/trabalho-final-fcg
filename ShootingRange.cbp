@@ -2,7 +2,11 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
+<<<<<<< HEAD:ShootingRange.cbp
 		<Option title="ShootingRang" />
+=======
+		<Option title="Laboratorio_5" />
+>>>>>>> main:Laboratorio_5.cbp
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>

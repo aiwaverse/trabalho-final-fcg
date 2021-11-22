@@ -1,6 +1,7 @@
 #pragma once
 #include <random>
 #include <chrono>
+#include <array>
 #include "cube.h"
 #ifndef M_PI_2
 #define M_PI_2 1.57079632679489661923
@@ -8,20 +9,19 @@
 
 struct target : public cube
 {
-    std::vector<glm::vec3> curve_points{};
+    std::array<glm::vec3,4> curve_points{};
 
     bool spawned{false};
+
+    std::chrono::_V2::system_clock::rep now;
 
     // quanto menor, mais rápdio
     float speed {10};
 
     float t{0};
 
-    target(const char *path) : cube(path)
+    void first_pos()
     {
-        using namespace std::chrono;
-        spawned = true;
-        auto now = system_clock::now().time_since_epoch().count();
         std::mt19937 rng(now);
         std::uniform_int_distribution<std::mt19937::result_type> range2to30(2, 20);
         std::uniform_int_distribution<std::mt19937::result_type> range0to4(0, 4);
@@ -33,15 +33,19 @@ struct target : public cube
         else
             signal = -1;
 
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
+        curve_points[0] = glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng)));
+        curve_points[1] = glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng)));
+        curve_points[2] = glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng)));
+        curve_points[3] = glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng)));
         posx = curve_points[0].x;
         posy = curve_points[0].y;
         posz = curve_points[0].z;
 
-        //std::cout << -static_cast<float>(range2to30(rng)) << "\n";
+    }
+
+    target(const char *path) : cube(path)
+    {
+        respawn();
     };
 
     void respawn()
@@ -60,10 +64,10 @@ struct target : public cube
         else
             signal = -1;
 
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
-        curve_points.push_back(glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng))));
+        curve_points[0] = glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng)));
+        curve_points[1] = glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng)));
+        curve_points[2] = glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng)));
+        curve_points[3] = glm::vec3(-static_cast<float>(range2to30(rng)), -0.2f, signal * static_cast<float>(range0to4(rng)));
         posx = curve_points[0].x;
         posy = curve_points[0].y;
         posz = curve_points[0].z;
