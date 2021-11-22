@@ -584,7 +584,6 @@ int main(int argc, char *argv[])
 
                     t_score = t_now - t_diference;
 
-                    printf("t_score = %0.f t_diference = %0.f\n", t_score, t_diference);
                     if(t_score < 10.0f)
                     {
                         g_ScoreValue = 1000.0f; // Primeiros 10 segundos valem 1_000 pontos
