@@ -106,7 +106,6 @@ void print_vec4(const glm::vec4 &v);
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowModelViewProjection(GLFWwindow *window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
 void TextRendering_ShowScorePlayer(GLFWwindow *window);
-void TextRendering_ShowFinalScorePlayer(GLFWwindow *window);
 void TextRendering_ShowProjection(GLFWwindow *window);
 void TextRendering_ShowFramesPerSecond(GLFWwindow *window);
 
@@ -117,7 +116,6 @@ void ErrorCallback(int error, const char *description);
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode);
 void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
-void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
 // Funções para controle de câmera
 void changeCameraPos(glm::vec4 &c_point, const glm::vec4 &view_vector);
@@ -221,6 +219,9 @@ float g_ScorePlayer = 0.0f;
 float g_ScoreValue = 0.0f;
 bool g_CountScore = true;
 
+// Flag para jogo em progresso
+bool g_GameInProgress = true;
+
 // Número de texturas carregadas pela função LoadTextureImage()
 GLuint g_NumLoadedTextures = 0;
 
@@ -268,8 +269,6 @@ int main(int argc, char *argv[])
     glfwSetMouseButtonCallback(window, MouseButtonCallback);
     // ... ou movimentar o cursor do mouse em cima da janela ...
     glfwSetCursorPosCallback(window, CursorPosCallback);
-    // ... ou rolar a "rodinha" do mouse.
-    glfwSetScrollCallback(window, ScrollCallback);
 
     // Indicamos que as chamadas OpenGL deverão renderizar nesta janela
     glfwMakeContextCurrent(window);
@@ -558,7 +557,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        if (targetmodel.spawned)
+        if (targetmodel.spawned && g_GameInProgress)
         {
             model = targetmodel.getModel();
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
@@ -583,7 +582,6 @@ int main(int argc, char *argv[])
                     t_score = t_now - t_diference;
 
                     printf("t_score = %0.f t_diference = %0.f\n", t_score, t_diference);
-                    TextRendering_ShowFinalScorePlayer(window);
                     if(t_score < 10.0f)
                     {
                         g_ScoreValue = 1000.0f; // Primeiros 10 segundos valem 1_000 pontos
@@ -606,7 +604,7 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        TextRendering_ShowFinalScorePlayer(window);
+                        g_GameInProgress = false; // Alvos somem assim que acaba o tempo
                     }
                 }
             }
@@ -1326,26 +1324,6 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
     }
 }
 
-// Função callback chamada sempre que o usuário movimenta a "rodinha" do mouse.
-void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset) //////////////////////////////////////////////////////// DAR UMA OLHADA /////////////////////////////////////////////////////////////////////
-{
-    if (g_UseCameraLookat)
-    {
-        // Atualizamos a distância da câmera para a origem utilizando a
-        // movimentação da "rodinha", simulando um ZOOM.
-        g_CameraDistance -= 0.1f * yoffset;
-
-        // Uma câmera look-at nunca pode estar exatamente "em cima" do ponto para
-        // onde ela está olhando, pois isto gera problemas de divisão por zero na
-        // definição do sistema de coordenadas da câmera. Isto é, a variável abaixo
-        // nunca pode ser zero. Versões anteriores deste código possuíam este bug,
-        // o qual foi detectado pelo aluno Vinicius Fraga (2017/2).
-        const float verysmallnumber = std::numeric_limits<float>::epsilon();
-        if (g_CameraDistance < verysmallnumber)
-            g_CameraDistance = verysmallnumber;
-    }
-}
-
 // Definição da função que será chamada sempre que o usuário pressionar alguma
 // tecla do teclado. Veja http://www.glfw.org/docs/latest/input_guide.html#input_key
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
@@ -1487,16 +1465,6 @@ void TextRendering_ShowScorePlayer (GLFWwindow *window)
     TextRendering_PrintString(window, buffer, -1.0f + charwidth, 1.0f - lineheight, 1.0f);
 }
 
-// Escrevemos na tela a pontuação final do jogador
-void TextRendering_ShowFinalScorePlayer (GLFWwindow *window)
-{
-    char buffer[30];
-    float lineheight = TextRendering_LineHeight(window);
-    float charwidth = TextRendering_CharWidth(window);
-    snprintf(buffer, 30, "Score: %.0f",g_ScorePlayer);
-    TextRendering_PrintString(window, buffer, -1.0f + charwidth - 0.3f , 1.0f - lineheight + 0.3f, 1.0f);
-}
-
 // Escrevemos na tela qual matriz de projeção está sendo utilizada.
 void TextRendering_ShowProjection(GLFWwindow *window)
 {
@@ -1508,8 +1476,6 @@ void TextRendering_ShowProjection(GLFWwindow *window)
 
     if (g_UsePerspectiveProjection)
         TextRendering_PrintString(window, "Perspective", 1.0f - 13 * charwidth, -1.0f + 2 * lineheight / 10, 1.0f);
-    else
-        TextRendering_PrintString(window, "Orthographic", 1.0f - 13 * charwidth, -1.0f + 2 * lineheight / 10, 1.0f);
 }
 
 // Escrevemos na tela o número de quadros renderizados por segundo (frames per
